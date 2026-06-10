@@ -30,47 +30,81 @@ MAX_CORRECTION_ROUNDS = int(os.getenv("MAX_CORRECTION_ROUNDS", "3"))
 # --------------------------------------------------------------------------- #
 # Dispatch (event handler side)
 # --------------------------------------------------------------------------- #
+_ACTIVE_STATES = (Status.RUNNING, Status.VALIDATING, Status.FEEDBACK)
+
+
+def _active_session_count() -> int:
+    return sum(1 for r in db.list_remediations()
+               if r.session_id and r.status in _ACTIVE_STATES)
+
+
 def dispatch(cluster: Cluster, issue_number: Optional[int] = None,
              issue_url: Optional[str] = None) -> Remediation:
-    """Create a Devin session for a cluster. Idempotent per (cluster, repo): a
-    webhook retry or a re-scan will not double-fire a session."""
+    """Register a remediation for a cluster, then fire it if there is spare
+    concurrency budget; otherwise leave it QUEUED for the poller to promote.
+    Idempotent per (cluster, repo): a webhook retry or re-scan never double-fires."""
     key = f"{cluster.id}:{config.github_repo}"
     existing = db.get_by_idempotency_key(key)
     if existing and existing.session_id and existing.status != Status.FAILED:
         return existing
+    if existing:
+        rem = existing
+    else:
+        rem = db.insert_remediation(Remediation(
+            cluster_id=cluster.id, cluster_title=cluster.title,
+            issue_number=issue_number, issue_url=issue_url, status=Status.QUEUED,
+            target_count=cluster.target_count, known_bad_seeds=cluster.known_bad_seeds,
+            eng_hours_saved=cluster.human_baseline_hours, idempotency_key=key,
+        ))
+        events.log(events.Event.SCAN_STARTED, f"queued {cluster.id}",
+                   remediation_id=rem.id, cluster_id=cluster.id)
+    promote_queued()
+    return db.get_remediation(rem.id) or rem
 
-    prompt = build_prompt(cluster, f"https://github.com/{config.github_repo}", issue_number)
+
+def _fire(rem: Remediation) -> None:
+    """Actually create the Devin session for an already-registered remediation."""
+    cluster = get_cluster(rem.cluster_id)
+    prompt = build_prompt(cluster, f"https://github.com/{config.github_repo}", rem.issue_number)
     created = devin.create_session(
         prompt, title=f"[flaky-fix] {cluster.id}", tags=cluster.labels,
         mock_cluster_id=cluster.id,
     )
-    sid, surl = created["session_id"], created["session_url"]
-    rem = db.insert_remediation(Remediation(
-        cluster_id=cluster.id, cluster_title=cluster.title,
-        issue_number=issue_number, issue_url=issue_url,
-        session_id=sid, session_url=surl, status=Status.RUNNING, attempts=1,
-        target_count=cluster.target_count, known_bad_seeds=cluster.known_bad_seeds,
-        eng_hours_saved=cluster.human_baseline_hours, idempotency_key=key,
-    ))
+    db.update_remediation(rem.id, session_id=created["session_id"],
+                          session_url=created["session_url"], status=Status.RUNNING,
+                          attempts=max(rem.attempts, 1))
     events.log(events.Event.SESSION_CREATED, f"dispatched Devin for {cluster.id}",
-               remediation_id=rem.id, cluster_id=cluster.id, session_url=surl)
-    if issue_number:
-        github.add_comment(issue_number, f"Devin remediation started: {surl}")
-        github.add_labels(issue_number, ["status:devin-running"])
-    return rem
+               remediation_id=rem.id, cluster_id=cluster.id, session_url=created["session_url"])
+    if rem.issue_number:
+        github.add_comment(rem.issue_number, f"Devin remediation started: {created['session_url']}")
+        github.add_labels(rem.issue_number, ["status:devin-running"])
+
+
+def promote_queued() -> None:
+    """Fire QUEUED remediations up to the concurrency cap (cost governance)."""
+    while _active_session_count() < config.max_active_sessions:
+        nxt = next((r for r in db.list_active()
+                    if r.status == Status.QUEUED and not r.session_id), None)
+        if not nxt:
+            return
+        _fire(nxt)
 
 
 # --------------------------------------------------------------------------- #
 # Poll loop (reconciliation)
 # --------------------------------------------------------------------------- #
 def poll_once() -> int:
-    """Advance every active remediation by one step. Returns how many were touched."""
+    """Advance every active remediation by one step, then promote any QUEUED
+    work that now fits under the concurrency cap. Returns how many were active."""
     active = db.list_active()
     for rem in active:
+        if not rem.session_id:
+            continue  # QUEUED with no session yet -> handled by promote_queued()
         try:
             _advance(rem)
         except Exception as exc:  # one bad row must not stall the others
             events.log("poll_error", str(exc), remediation_id=rem.id, cluster_id=rem.cluster_id)
+    promote_queued()
     return len(active)
 
 

@@ -31,6 +31,17 @@ class Config:
     db_path: str = os.getenv("DB_PATH", "./autofix.db")
     run_poller: bool = _bool("RUN_POLLER", True)
 
+    # ---- Cost governance ----
+    # Bound how many Devin sessions run concurrently. Excess dispatches are
+    # QUEUED and promoted by the poller as capacity frees -- so a 20-cluster
+    # scan cannot fan out into 20 simultaneous full-suite runs (the way to burn
+    # an ACU budget in an afternoon). The lightweight form of the circuit
+    # breaker a production deployment would add.
+    max_active_sessions: int = int(os.getenv("MAX_ACTIVE_SESSIONS", "3"))
+    # Statistical confidence vs wall-clock/ACU: K fresh randomized orderings the
+    # validator re-runs on top of the known-bad seeds.
+    validator_fresh_seed_runs: int = int(os.getenv("VALIDATOR_FRESH_SEED_RUNS", "5"))
+
     @property
     def repo_url(self) -> str:
         return f"https://github.com/{self.github_repo}"

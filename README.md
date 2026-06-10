@@ -45,6 +45,22 @@ The headline contrast, on the dashboard: **GitHub CI says `green`, our validator
 dependency-bump pipeline can produce that beat, because a version pin has no hidden failure
 mode to expose.
 
+## Current results
+
+- **1 live, independently-validated PR**: [catherineyinzhao/superset#6](https://github.com/catherineyinzhao/superset/pull/6)
+  -- a genuine Devin root-cause fix for the `dataset-import-allowlist` cluster (restore the
+  mutated `app.config` allow-list via `try/finally`). The validator's anti-cheat + provenance
+  gates ran against the live PR diff and passed (test-side only, no forbidden patterns).
+- **5 issues filed** in the fork ([#1-#5](https://github.com/catherineyinzhao/superset/issues)),
+  one per real flaky cluster.
+- **The full pipeline + every verdict** (`stabilized`, `cheat_detected`, `still_flaky`,
+  `needs_human_review`) is demonstrated deterministically in **mock mode** -- the recommended
+  path for the recorded demo (no keys, no spend).
+- **One integration step for native pushing**: the Devin sessions completed their fixes but were
+  blocked on `git push` (HTTP 403) until the **Devin GitHub app is authorized** on the fork with
+  write access. Once authorized, each session opens its own PR; in the interim we extracted the
+  verified diff and opened the PR on its behalf (PR #6).
+
 ## Quickstart -- demo mode (no keys, no spend)
 
 The full code path runs against local stubs; only the slow seed-sweep is simulated. The
@@ -80,6 +96,21 @@ docker compose up --build
   `devin-fix` dispatches a session. HMAC-validated via `GITHUB_WEBHOOK_SECRET`.
 - Real validation clones the PR branch and re-runs `tests/unit_tests/` across seeds, so it
   needs the Superset dev env (`VALIDATOR_FRESH_SEED_RUNS` tunes the sweep size).
+
+## Cost governance
+
+Statistical verification has a real compute cost (five parallel full-suite verifications
+exhausted a $20 ACU budget in an afternoon -- firsthand). Spend is a first-class control here,
+not an afterthought:
+
+- **`MAX_ACTIVE_SESSIONS`** (default 3) -- bounds concurrency. Excess dispatches are `QUEUED`
+  and promoted by the poller as capacity frees, so a 20-cluster scan can't fan out into 20
+  simultaneous full-suite runs. The lightweight form of a production circuit breaker.
+- **`DEVIN_MAX_ACU_LIMIT`** -- caps spend per Devin session.
+- **`VALIDATOR_FRESH_SEED_RUNS`** -- trades statistical confidence against wall-clock/ACU.
+- **Roadmap:** a true circuit breaker (open on repeated failures), and module-scoped seed
+  sweeps once discovery has pinned the leaker->victim set (faster than full-suite, valid only
+  when the leaker is included).
 
 ## The clusters
 
@@ -123,6 +154,28 @@ docs/
 scripts/
   seed_issues.py   file the cluster issues       fire_session.py  dispatch real sessions
 ```
+
+## Design rationale (research grounding)
+
+Every design choice answers a *documented* agent failure mode -- and each is one the prior
+submissions walked into by assuming agent output is trustworthy. Full treatment with citations in
+[`docs/DESIGN_RATIONALE.md`](docs/DESIGN_RATIONALE.md); in brief:
+
+- **Adversarial verification** -- cheat-fixes are reward hacking (Goodhart; Amodei et al. 2016).
+  CI-green is the gamed measure, so a CI-based check is structurally blind to it. Our scan assumes
+  gaming and tries to reject.
+- **Execution-grounded, not LLM-judged** -- LLM judges are biased and self-preferring
+  (Panickssery et al. 2024; Zheng et al. 2023) and share the generator's blind spots. Our ground
+  truth is the test runner + deterministic static analysis.
+- **Outcome + process gates** -- "tests pass" is a weak signal (SWE-bench Verified, 2024); we check
+  both multi-seed re-runs and the diff/provenance.
+- **Externally-grounded, bounded self-correction** -- intrinsic self-correction is unreliable
+  (Huang et al. 2023); feedback that works is concrete external evidence (Reflexion, 2023). We send
+  the exact pattern/seed back, capped at `MAX_CORRECTION_ROUNDS`, then escalate.
+- **Principled abstention** -- selective prediction / learning-to-defer: `needs_human_review` and
+  `inconclusive` are first-class verdicts, not failures.
+- **The harness is the product** -- per the agent-scaffolding literature (SWE-agent, 2024), value
+  lives in the verification/control loop around the model, which is exactly what this contributes.
 
 ## Design notes
 
