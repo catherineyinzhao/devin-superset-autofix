@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="refresh" content="5">
+  <title>Devin Flaky-Test Autofix</title>
+  <style>
+    :root {
+      --bg:#0d1117; --panel:#161b22; --border:#30363d; --text:#e6edf3; --muted:#8b949e;
+      --green:#2ea043; --red:#da3633; --orange:#db8c1a; --blue:#1f6feb; --purple:#8957e5; --yellow:#bb8009;
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--text);
+           font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif; }
+    .wrap { max-width:1180px; margin:0 auto; padding:24px; }
+    h1 { font-size:20px; margin:0 0 2px; }
+    .sub { color:var(--muted); font-size:13px; margin-bottom:20px; }
+    .cards { display:grid; grid-template-columns:repeat(6,1fr); gap:12px; margin-bottom:24px; }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:14px; }
+    .card .n { font-size:26px; font-weight:700; }
+    .card .l { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.04em; }
+    .card.hl { border-color:var(--red); }
+    .card.hl .n { color:var(--red); }
+    .card.good .n { color:var(--green); }
+    table { width:100%; border-collapse:collapse; background:var(--panel);
+            border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+    th,td { text-align:left; padding:10px 12px; border-bottom:1px solid var(--border); font-size:13px; }
+    th { color:var(--muted); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.04em; }
+    tr:last-child td { border-bottom:none; }
+    tr.lie { background:rgba(218,54,51,.08); }
+    .badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; font-weight:600; }
+    .b-green{background:rgba(46,160,67,.18);color:#3fb950;}
+    .b-red{background:rgba(218,54,51,.18);color:#f85149;}
+    .b-orange{background:rgba(219,140,26,.18);color:#e3a13a;}
+    .b-blue{background:rgba(31,111,235,.18);color:#58a6ff;}
+    .b-purple{background:rgba(137,87,229,.2);color:#a371f7;}
+    .b-grey{background:rgba(139,148,158,.18);color:var(--muted);}
+    a { color:#58a6ff; text-decoration:none; } a:hover { text-decoration:underline; }
+    .lie-note { color:#f85149; font-size:11px; }
+    .timeline { margin-top:24px; background:var(--panel); border:1px solid var(--border);
+                border-radius:8px; padding:8px 14px; max-height:220px; overflow:auto; }
+    .ev { font:12px/1.7 ui-monospace,SFMono-Regular,Menlo,monospace; color:var(--muted); }
+    .ev b { color:var(--text); }
+    .foot { color:var(--muted); font-size:12px; margin-top:18px; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Devin Flaky-Test Autofix</h1>
+  <div class="sub">Independent verification layer for autonomous remediation &nbsp;|&nbsp;
+    repo <b>{{ metrics.repo }}</b> &nbsp;|&nbsp; auto-refresh 5s</div>
+
+  {% macro vbadge(v) %}
+    {% if v=='stabilized' %}<span class="badge b-green">stabilized</span>
+    {% elif v=='cheat_detected' %}<span class="badge b-red">cheat detected</span>
+    {% elif v=='still_flaky' %}<span class="badge b-orange">still flaky</span>
+    {% elif v=='regressed' %}<span class="badge b-orange">regressed</span>
+    {% elif v=='needs_human_review' %}<span class="badge b-purple">needs human</span>
+    {% elif v=='inconclusive' %}<span class="badge b-grey">inconclusive</span>
+    {% else %}<span class="badge b-grey">{{ v }}</span>{% endif %}
+  {% endmacro %}
+
+  {% macro sbadge(s) %}
+    {% if s=='stabilized' %}<span class="badge b-green">stabilized</span>
+    {% elif s=='escalated' %}<span class="badge b-purple">escalated</span>
+    {% elif s=='failed' %}<span class="badge b-red">failed</span>
+    {% elif s=='feedback' %}<span class="badge b-yellow b-orange">feedback</span>
+    {% elif s=='validating' %}<span class="badge b-blue">validating</span>
+    {% else %}<span class="badge b-blue">{{ s }}</span>{% endif %}
+  {% endmacro %}
+
+  <div class="cards">
+    <div class="card"><div class="n">{{ metrics.total }}</div><div class="l">Clusters</div></div>
+    <div class="card"><div class="n">{{ metrics.in_progress }}</div><div class="l">In progress</div></div>
+    <div class="card good"><div class="n">{{ metrics.stabilized }}</div><div class="l">Stabilized</div></div>
+    <div class="card hl"><div class="n">{{ metrics.ci_green_lies_caught }}</div><div class="l">CI-green lies caught</div></div>
+    <div class="card hl"><div class="n">{{ metrics.cheats_caught }}</div><div class="l">Cheat-fixes caught</div></div>
+    <div class="card"><div class="n">{{ metrics.eng_hours_saved }}</div><div class="l">Eng-hours saved</div></div>
+  </div>
+
+  <table>
+    <thead><tr>
+      <th>Cluster</th><th>Targets</th><th>Status</th>
+      <th>GitHub CI</th><th>Independent verdict</th>
+      <th>Seeds</th><th>Att.</th><th>PR / Session</th>
+    </tr></thead>
+    <tbody>
+    {% for r in remediations %}
+      {% set lie = (r.ci_status=='green' and r.verdict not in ['stabilized','pending']) %}
+      <tr class="{{ 'lie' if lie else '' }}">
+        <td><b>{{ r.cluster_id }}</b></td>
+        <td>{{ r.target_count }}</td>
+        <td>{{ sbadge(r.status) }}</td>
+        <td>
+          {% if r.ci_status=='green' %}<span class="badge b-green">green</span>
+          {% elif r.ci_status=='red' %}<span class="badge b-red">red</span>
+          {% elif r.ci_status=='pending' %}<span class="badge b-blue">pending</span>
+          {% else %}<span class="badge b-grey">none</span>{% endif %}
+        </td>
+        <td>{{ vbadge(r.verdict) }}
+          {% if lie %}<div class="lie-note">CI lied -- caught it</div>{% endif %}
+        </td>
+        <td>{{ r.seeds_run }}</td>
+        <td>{{ r.attempts }}</td>
+        <td>
+          {% if r.pr_url %}<a href="{{ r.pr_url }}">PR</a>{% else %}-{% endif %}
+          {% if r.session_url %} &middot; <a href="{{ r.session_url }}">session</a>{% endif %}
+        </td>
+      </tr>
+    {% else %}
+      <tr><td colspan="8" style="color:var(--muted)">No remediations yet. POST /trigger/scan or label an issue <b>{{ metrics.repo }}</b>.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="timeline">
+    {% for e in events %}
+      <div class="ev"><b>{{ e.kind }}</b>
+        {% if e.cluster_id %}[{{ e.cluster_id }}]{% endif %} {{ e.message }}</div>
+    {% endfor %}
+  </div>
+
+  <div class="foot">
+    Verified rate {{ (metrics.verified_rate*100)|round(0)|int }}% &nbsp;|&nbsp;
+    {{ metrics.total_seeds_run }} seed-runs executed &nbsp;|&nbsp;
+    avg {{ metrics.avg_duration_sec }}s &nbsp;|&nbsp; updated {{ now }}
+  </div>
+</div>
+</body>
+</html>

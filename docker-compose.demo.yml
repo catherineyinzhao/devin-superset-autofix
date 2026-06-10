@@ -1,0 +1,14 @@
+# Demo override: full pipeline with NO Devin/GitHub keys and NO spend.
+#   docker compose -f docker-compose.yml -f docker-compose.demo.yml up --build
+# Then open http://localhost:8000/dashboard and POST http://localhost:8000/trigger/scan
+services:
+  autofix:
+    env_file: []
+    environment:
+      DEVIN_MOCK: "1"
+      DEVIN_API_KEY: demo
+      GITHUB_TOKEN: demo
+      GITHUB_REPO: catherineyinzhao/superset
+      POLL_INTERVAL_SECONDS: "3"
+      DEVIN_MOCK_WORK_SECONDS: "3"
+      DB_PATH: /data/autofix.db

@@ -1,0 +1,11 @@
+services:
+  autofix:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file: .env
+    environment:
+      DB_PATH: /data/autofix.db
+    volumes:
+      - ./data:/data
+    restart: unless-stopped
