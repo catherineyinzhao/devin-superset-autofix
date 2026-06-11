@@ -6,164 +6,129 @@
   <title>Devin Flaky-Test Autofix</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <script type="module">
-    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11.15.0/dist/mermaid.esm.min.mjs';
     mermaid.initialize({ startOnLoad: true, theme: 'base', securityLevel: 'loose',
       flowchart: { curve: 'basis', useMaxWidth: true },
-      themeVariables: { fontFamily: 'Inter, sans-serif', fontSize: '13px',
-        primaryColor: '#f7f8fa', primaryBorderColor: '#d4d8e0', primaryTextColor: '#0b0d12',
-        lineColor: '#9aa0aa', secondaryColor: '#eef1ff', tertiaryColor: '#ffffff' } });
+      themeVariables: { fontFamily: "'JetBrains Mono', monospace", fontSize: '12px',
+        primaryColor: '#faf9f5', primaryBorderColor: '#cfccc0', primaryTextColor: '#16140f',
+        lineColor: '#8a877d', secondaryColor: '#efeee8', tertiaryColor: '#ffffff' } });
   </script>
   <style>
     :root{
-      --bg:#ffffff; --surface:#f7f8fa; --surface2:#eceef2; --border:#e6e8ee; --border2:#d4d8e0;
-      --ink:#0b0d12; --body:#3f454f; --muted:#767d89; --faint:#a7adb6;
-      --accent:#2b54ff; --green:#15803d; --red:#d83a3a; --amber:#b25e09;
+      --bg:#f3f2ed; --surface:#faf9f5; --surface2:#ebe9e1; --border:#e0ddd3; --border2:#cfccc0;
+      --ink:#16140f; --body:#45423a; --muted:#6f6c62; --faint:#a29e92;
+      --accent:#2b2bf0; --green:#1f7a43; --red:#c0392b; --amber:#945a0c;
+      --serif:'Source Serif 4',Georgia,'Times New Roman',serif;
       --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
     }
     *{box-sizing:border-box;}
-    body{margin:0;background:var(--bg);color:var(--body);
-      font:15px/1.6 'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    body{margin:0;background:var(--bg);color:var(--body);font:16px/1.6 var(--serif);
       -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
-    .wrap{max-width:940px;margin:0 auto;padding:64px 28px 100px;}
-    a{color:var(--accent);text-decoration:none;font-weight:500;} a:hover{text-decoration:underline;}
+    .wrap{max-width:920px;margin:0 auto;padding:60px 28px 110px;}
+    a{color:var(--accent);text-decoration:none;} a:hover{text-decoration:underline;}
+    code{font-family:var(--mono);font-size:.82em;background:var(--surface2);padding:1px 5px;border-radius:2px;color:var(--ink);}
 
-    h1{font-size:34px;line-height:1.08;margin:0;color:var(--ink);font-weight:800;letter-spacing:-.03em;}
-    .tagline{font-size:17.5px;color:var(--muted);margin:18px 0 0;max-width:640px;line-height:1.5;}
+    h1{font-size:38px;line-height:1.06;margin:0;color:var(--ink);font-weight:600;letter-spacing:-.02em;}
+    .tagline{font-size:18px;color:var(--body);margin:18px 0 0;max-width:650px;line-height:1.5;}
     .tagline b{color:var(--ink);font-weight:600;}
-    .repo{font-size:12.5px;color:var(--faint);margin-top:18px;font-family:var(--mono);}
+    .repo{font-family:var(--mono);font-size:11.5px;color:var(--faint);margin-top:20px;letter-spacing:.01em;}
 
-    section{margin-top:72px;}
-    .eyebrow{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin-bottom:12px;}
-    h2{font-size:25px;color:var(--ink);font-weight:700;letter-spacing:-.02em;margin:0 0 8px;}
-    .lead2{font-size:16px;color:var(--muted);margin:0 0 26px;max-width:680px;line-height:1.55;}
+    section{margin-top:74px;}
+    .eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+    .eyebrow .enum{color:var(--faint);margin-right:10px;}
+    h2{font-family:var(--serif);font-size:26px;color:var(--ink);font-weight:600;letter-spacing:-.015em;margin:0 0 10px;line-height:1.15;}
+    .lead2{font-size:16.5px;color:var(--body);margin:0 0 26px;max-width:690px;line-height:1.55;}
     .lead2 b{color:var(--ink);font-weight:600;}
-    code{background:var(--surface2);border-radius:4px;padding:1px 6px;font-size:12.5px;font-family:var(--mono);color:var(--ink);}
 
-    /* thesis */
-    .thesis{border-left:3px solid var(--ink);padding:4px 0 4px 24px;}
-    .thesis p{font-size:17px;line-height:1.6;color:var(--body);margin:0 0 14px;}
-    .thesis p:last-child{margin-bottom:0;} .thesis b{color:var(--ink);}
-
-    /* architecture diagram */
-    .arch{display:flex;flex-direction:column;align-items:center;gap:0;}
-    .node{width:100%;max-width:560px;border:1px solid var(--border2);border-radius:12px;padding:16px 20px;background:#fff;text-align:center;}
-    .node .nt{font-size:15px;font-weight:700;color:var(--ink);}
-    .node .role{display:inline-block;margin-left:8px;font-size:11px;font-weight:600;color:var(--accent);
-      background:#eef1ff;border-radius:999px;padding:2px 9px;vertical-align:middle;letter-spacing:.02em;}
-    .node .role.det{color:var(--green);background:#e8f5ec;}
-    .node .d{font-size:12.5px;color:var(--muted);margin-top:6px;line-height:1.5;}
-    .node.val{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink);}
-    .node .never{display:block;margin-top:8px;font-size:12px;font-weight:600;color:var(--ink);}
-    .conn{color:var(--faint);font-size:18px;line-height:1;padding:7px 0;}
-    .conn .lbl{font-size:11px;font-family:var(--mono);color:var(--faint);margin-left:8px;}
-    .branch{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;max-width:680px;margin-top:4px;}
-    .out{border:1px solid var(--border);border-radius:10px;padding:13px 14px;background:var(--surface);}
-    .out .h{font-size:13px;font-weight:700;}
-    .out .s{font-size:12px;color:var(--muted);margin-top:4px;font-family:var(--mono);}
-    .out.good{border-color:#bfe3cb;} .out.good .h{color:var(--green);}
-    .out.warn{border-color:#ecd6b3;} .out.warn .h{color:var(--amber);}
-
-    /* richer staged flow diagram */
-    .flow{margin-top:4px;}
-    .fstage{border:1px solid var(--border2);border-radius:12px;padding:14px 18px;background:#fff;}
-    .fstage.val{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink);}
-    .fl{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:7px;}
-    .fstage.val .fl{color:var(--green);}
-    .fb{font-size:13.5px;color:var(--body);line-height:1.5;} .fb b{color:var(--ink);}
-    .fdown{text-align:center;color:var(--faint);font-size:16px;line-height:1;padding:6px 0;}
-    .fdown .l{font-family:var(--mono);font-size:11px;color:var(--faint);margin-left:6px;}
-    .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px;}
-    .chip{flex:1;min-width:130px;border:1px solid var(--border);border-radius:9px;padding:8px 11px;background:var(--surface);}
-    .chip .ct{display:block;font-weight:700;color:var(--ink);font-size:12.5px;}
-    .chip .cs{display:block;color:var(--muted);font-size:11px;margin-top:2px;}
-    .cnote{font-size:12px;color:var(--muted);margin-top:10px;font-family:var(--mono);line-height:1.5;}
-    .branch3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
-    .loopnote{font-size:11.5px;font-family:var(--mono);color:var(--amber);margin-top:11px;line-height:1.5;}
+    .thesis{border-left:2px solid var(--ink);padding:2px 0 2px 24px;}
+    .thesis p{font-size:18px;line-height:1.6;color:var(--body);margin:0 0 16px;}
+    .thesis p:last-child{margin-bottom:0;} .thesis b{color:var(--ink);font-weight:600;}
 
     /* mermaid harness graph */
-    .mermaid{display:flex;justify-content:center;margin:6px 0 2px;min-height:40px;}
+    .mermaid{display:flex;justify-content:center;margin:8px 0 4px;min-height:40px;}
     .mermaid svg{max-width:100%;height:auto;}
-    .graph-fallback{font-size:11px;color:var(--faint);text-align:center;margin-top:6px;font-family:var(--mono);}
-    .lpts{display:grid;grid-template-columns:1fr 1fr;gap:22px 40px;margin-top:30px;}
-    .lp{display:flex;gap:14px;}
-    .lp .m{color:var(--accent);font-size:16px;line-height:1.2;}
-    .lp h3{font-size:14.5px;color:var(--ink);margin:0 0 4px;font-weight:700;}
-    .lp p{margin:0;font-size:13.5px;color:var(--body);line-height:1.55;}
+    .graph-fallback{font-family:var(--mono);font-size:11px;color:var(--faint);text-align:center;margin-top:8px;line-height:1.5;}
 
-    /* head-to-head: why an autonomous agent */
-    .vs{display:flex;flex-direction:column;gap:10px;}
-    .vsrow{border:1px solid var(--border);border-radius:11px;padding:14px 18px;}
-    .vsrow.devin{border-color:#bfe3cb;background:#fbfdfb;}
+    .lpts{display:grid;grid-template-columns:1fr 1fr;gap:24px 44px;margin-top:34px;}
+    .lp{display:flex;gap:14px;}
+    .lp .m{color:var(--accent);font-size:15px;line-height:1.3;}
+    .lp h3{font-size:15.5px;color:var(--ink);margin:0 0 4px;font-weight:600;}
+    .lp p{margin:0;font-size:14.5px;color:var(--body);line-height:1.55;}
+
+    .steps{display:grid;grid-template-columns:1fr 1fr;gap:28px 44px;}
+    .step{display:flex;gap:15px;}
+    .step .idx{font-family:var(--mono);font-size:13px;color:var(--accent);min-width:20px;padding-top:2px;}
+    .step h3{font-size:15.5px;color:var(--ink);margin:0 0 5px;font-weight:600;}
+    .step p{margin:0;font-size:14.5px;color:var(--body);line-height:1.55;}
+
+    /* head-to-head */
+    .vs{display:flex;flex-direction:column;gap:9px;}
+    .vsrow{border:1px solid var(--border);border-radius:2px;padding:15px 18px;background:var(--surface);}
+    .vsrow.devin{border-color:var(--ink);}
     .vshead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-    .vlabel{font-weight:700;color:var(--ink);font-size:14.5px;}
-    .vkind{font-size:11px;color:var(--muted);font-family:var(--mono);}
+    .vlabel{font-weight:600;color:var(--ink);font-size:15.5px;}
+    .vkind{font-family:var(--mono);font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;}
     .vhead-sp{flex:1;}
-    .vblurb{font-size:13px;color:var(--body);margin-top:7px;line-height:1.5;}
-    .matrix{margin-top:28px;}
-    .matrix table{width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--border);border-radius:12px;overflow:hidden;}
-    .matrix th,.matrix td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:12.5px;text-align:center;}
-    .matrix th{background:var(--surface);color:var(--faint);font-size:10px;text-transform:uppercase;letter-spacing:.04em;font-weight:700;}
+    .vblurb{font-size:14px;color:var(--body);margin-top:7px;line-height:1.5;}
+    .matrix{margin-top:30px;overflow-x:auto;}
+    .matrix table{width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--border);border-radius:2px;}
+    .matrix th,.matrix td{padding:11px 12px;border-bottom:1px solid var(--border);font-size:12.5px;text-align:center;}
+    .matrix th{font-family:var(--mono);background:var(--surface);color:var(--muted);font-size:9.5px;text-transform:uppercase;letter-spacing:.04em;font-weight:500;}
     .matrix th:first-child,.matrix td:first-child{text-align:left;}
     .matrix tbody tr:last-child td{border-bottom:none;}
-    .matrix tr.devin td{background:#f3faf5;}
+    .matrix tr.devin td{background:var(--surface);}
     .matrix .nm{font-weight:600;color:var(--ink);}
     .yes{color:var(--green);font-weight:700;} .no{color:var(--faint);} .pt{color:var(--amber);font-weight:700;}
 
-    /* steps */
-    .steps{display:grid;grid-template-columns:1fr 1fr;gap:28px 44px;}
-    .step{display:flex;gap:16px;}
-    .step .idx{font-size:13px;font-weight:800;color:var(--accent);min-width:24px;padding-top:1px;}
-    .step h3{font-size:15px;color:var(--ink);margin:0 0 5px;font-weight:700;}
-    .step p{margin:0;font-size:13.5px;color:var(--body);line-height:1.55;}
-
-    /* headline */
-    .headline{display:flex;gap:26px;align-items:center;border:1px solid var(--border);border-radius:14px;padding:26px 30px;background:var(--surface);}
-    .headline .num{font-size:58px;font-weight:800;color:var(--red);line-height:.85;letter-spacing:-.04em;min-width:64px;text-align:center;}
-    .headline .lead{font-size:17px;color:var(--ink);font-weight:600;line-height:1.4;}
-    .headline .sub{font-size:13px;color:var(--muted);margin-top:7px;line-height:1.5;}
-
-    .cards{display:grid;grid-template-columns:repeat(5,1fr);gap:13px;margin-top:24px;}
-    .card{border:1px solid var(--border);border-radius:11px;padding:15px 17px;}
-    .card .n{font-size:25px;font-weight:800;color:var(--ink);letter-spacing:-.02em;}
+    /* results */
+    .headline{display:flex;gap:26px;align-items:center;border:1px solid var(--border);border-radius:2px;padding:26px 30px;background:var(--surface);}
+    .headline .num{font-size:62px;font-weight:600;color:var(--ink);line-height:.85;letter-spacing:-.03em;min-width:70px;text-align:center;}
+    .headline .lead{font-size:18px;color:var(--ink);font-weight:600;line-height:1.35;}
+    .headline .sub{font-size:14px;color:var(--muted);margin-top:8px;line-height:1.5;}
+    .cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:22px;}
+    .card{border:1px solid var(--border);border-radius:2px;padding:16px 18px;background:var(--surface);}
+    .card .n{font-size:27px;font-weight:600;color:var(--ink);letter-spacing:-.01em;}
     .card .n.g{color:var(--green);}
-    .card .l{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:4px;}
+    .card .l{font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-top:5px;}
 
     /* remediation cards */
-    .rem{border:1px solid var(--border);border-radius:14px;padding:22px 24px;margin-bottom:16px;}
-    .rem.dis{border-color:#eebebe;}
-    .rem-head{display:flex;justify-content:space-between;align-items:center;gap:14px;}
-    .rem-title{font-size:16px;font-weight:700;color:var(--ink);font-family:var(--mono);}
-    .rem-links{font-size:12.5px;font-family:var(--mono);white-space:nowrap;}
-    .facts{margin-top:16px;display:grid;grid-template-columns:max-content 1fr;gap:8px 16px;font-size:13.5px;}
-    .facts .k{color:var(--faint);font-weight:700;text-transform:uppercase;font-size:10px;letter-spacing:.06em;padding-top:3px;}
+    .rem{border:1px solid var(--border);border-radius:2px;padding:24px 26px;margin-bottom:16px;background:var(--surface);}
+    .rem.dis{border-color:#d8b3ac;}
+    .rem-head{display:flex;justify-content:space-between;align-items:baseline;gap:14px;border-bottom:1px solid var(--border);padding-bottom:14px;}
+    .rem-title{font-family:var(--mono);font-size:14.5px;font-weight:600;color:var(--ink);}
+    .rem-links{font-family:var(--mono);font-size:12px;white-space:nowrap;}
+    .block{margin-top:18px;}
+    .blk-lbl{font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);margin-bottom:9px;}
+    .facts{display:grid;grid-template-columns:max-content 1fr;gap:8px 16px;font-size:14px;}
+    .facts .k{font-family:var(--mono);color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.05em;padding-top:3px;}
     .facts .v{color:var(--body);}
-    .facts .mono{font-family:var(--mono);font-size:12.5px;color:var(--ink);}
-    .facts .fix{color:var(--green);font-weight:500;}
-    .flag{margin-top:14px;font-size:12.5px;font-weight:700;color:var(--red);background:#fcebeb;border-radius:8px;padding:8px 13px;}
+    .mono{font-family:var(--mono);font-size:12.5px;color:var(--ink);}
+    .flag{margin-top:16px;font-size:13px;color:var(--red);background:#f7e7e4;border:1px solid #e7cbc5;border-radius:2px;padding:9px 13px;}
 
-    .evidence{margin-top:16px;background:var(--surface);border-radius:10px;padding:13px 16px;font-size:12.5px;}
-    .evidence .et{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);margin-bottom:8px;}
-    .evidence .row{margin-bottom:4px;} .evidence .row:last-child{margin-bottom:0;}
-    .evidence .lab{display:inline-block;min-width:96px;color:var(--muted);}
-    .evidence .mono{font-family:var(--mono);}
+    pre.code{font-family:var(--mono);font-size:11.5px;line-height:1.55;background:#fbfaf6;border:1px solid var(--border);
+      border-radius:2px;padding:12px 14px;margin:0;overflow-x:auto;color:var(--body);}
+    pre.code .add{color:var(--green);} pre.code .del{color:var(--red);}
+
+    .evidence{margin-top:6px;background:#fbfaf6;border:1px solid var(--border);border-radius:2px;padding:13px 16px;font-size:12.5px;}
+    .evidence .row{margin-bottom:5px;} .evidence .row:last-child{margin-bottom:0;}
+    .evidence .lab{display:inline-block;min-width:100px;color:var(--muted);font-family:var(--mono);font-size:11px;}
     .pass{color:var(--green);font-weight:600;} .fail{color:var(--red);font-weight:600;}
 
-    .trace{margin-top:18px;border-top:1px solid var(--border);padding-top:16px;}
-    .trace-lbl{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);margin-bottom:14px;}
-    .t{position:relative;padding:0 0 13px 22px;border-left:2px solid var(--border);margin-left:5px;}
+    .trace{margin-top:6px;}
+    .t{position:relative;padding:0 0 13px 22px;border-left:1px solid var(--border2);margin-left:5px;}
     .t:last-child{border-left-color:transparent;padding-bottom:0;}
-    .t .dot{position:absolute;left:-6px;top:3px;width:10px;height:10px;border-radius:50%;background:var(--faint);border:2px solid #fff;}
+    .t .dot{position:absolute;left:-5px;top:4px;width:9px;height:9px;border-radius:50%;background:var(--faint);border:2px solid var(--surface);}
     .t.b .dot{background:var(--accent);} .t.g .dot{background:var(--green);} .t.r .dot{background:var(--red);} .t.a .dot{background:var(--amber);}
-    .t .tk{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);}
+    .t .tk{font-family:var(--mono);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);}
     .t.b .tk{color:var(--accent);} .t.g .tk{color:var(--green);} .t.r .tk{color:var(--red);} .t.a .tk{color:var(--amber);}
     .t .tm{font-size:13.5px;color:var(--body);display:block;margin-top:1px;}
 
-    .badge{display:inline-block;padding:2px 10px;border-radius:999px;font-size:11.5px;font-weight:600;white-space:nowrap;}
-    .b-green{background:#e8f5ec;color:var(--green);} .b-red{background:#fcebeb;color:var(--red);}
-    .b-amber{background:#f7eddc;color:var(--amber);} .b-blue{background:#eef1ff;color:var(--accent);} .b-grey{background:#eef0f3;color:var(--muted);}
-    .foot{color:var(--faint);font-size:12px;margin-top:26px;font-family:var(--mono);}
+    .badge{display:inline-block;font-family:var(--mono);padding:2px 8px;border-radius:2px;font-size:10.5px;font-weight:500;white-space:nowrap;letter-spacing:.01em;}
+    .b-green{background:#e7f1ea;color:var(--green);} .b-red{background:#f7e7e4;color:var(--red);}
+    .b-amber{background:#f3ead8;color:var(--amber);} .b-blue{background:#e7e7fb;color:var(--accent);} .b-grey{background:#eceae2;color:var(--muted);}
+    .foot{font-family:var(--mono);color:var(--faint);font-size:11.5px;margin-top:28px;letter-spacing:.01em;}
   </style>
 </head>
 <body>
@@ -176,7 +141,7 @@
   </header>
 
   <section>
-    <div class="eyebrow">Why this exists</div>
+    <div class="eyebrow"><span class="enum">01</span> Why this exists</div>
     <h2>"CI is green" is not the same as "correct"</h2>
     <div class="thesis">
       <p>Coding agents made <b>generating</b> fixes cheap. They did not make <b>trusting</b> them cheap.
@@ -192,7 +157,7 @@
   </section>
 
   <section>
-    <div class="eyebrow">The harness</div>
+    <div class="eyebrow"><span class="enum">02</span> The harness</div>
     <h2>A bounded recursive correction loop</h2>
     <p class="lead2">The harness isn't a pipeline that ends at "PR opened" &mdash; it's a <b>closed loop</b> that
       runs until a fix is provably stable or it knowingly hands off. One Devin agent does the engineering
@@ -202,7 +167,7 @@
     <pre class="mermaid">
 flowchart TD
   scan["Scheduled scan<br/>suite re-run across seed orderings"] --> clusters["9 flaky tests, 5 root-cause clusters<br/>filed as devin-fix issues"]
-  clusters --> orchOrchestrator<br/>idempotent, bounded concurrency
+  clusters --> orch[["Orchestrator<br/>idempotent, bounded concurrency"]]
   orch -->|"fan out (parallel)"| s1["Devin session A<br/>1 agent + Playbook / Knowledge / Snapshot"]
   orch --> s2["Devin session B"]
   orch --> s3["Devin session C"]
@@ -214,9 +179,9 @@ flowchart TD
   verdict -->|"cheat / still-flaky / regressed"| gate{"rounds left?"}
   gate -->|"yes: thread exact evidence back"| s1
   gate -->|"no: circuit breaker"| esc
-  classDef val fill:#ffffff,stroke:#0b0d12,stroke-width:2px,color:#0b0d12;
-  classDef good fill:#e8f5ec,stroke:#15803d,color:#15803d;
-  classDef warn fill:#f7eddc,stroke:#b25e09,color:#b25e09;
+  classDef val fill:#ffffff,stroke:#16140f,stroke-width:2px,color:#16140f;
+  classDef good fill:#e7f1ea,stroke:#1f7a43,color:#1f7a43;
+  classDef warn fill:#f3ead8,stroke:#945a0c,color:#945a0c;
   class val val;
   class done good;
   class esc warn;
@@ -247,7 +212,7 @@ flowchart TD
   </section>
 
   <section>
-    <div class="eyebrow">Context &amp; throughput</div>
+    <div class="eyebrow"><span class="enum">03</span> Context &amp; throughput</div>
     <h2>The value is in the diagnosis &mdash; and it parallelizes</h2>
     <p class="lead2">Cognition's <a href="https://cognition.ai/blog/ai-productivity">Estimating AI Engineering
       Productivity</a> finds the real effort in a session is <b>investigation, diagnosis, and setup</b> &mdash;
@@ -257,7 +222,7 @@ flowchart TD
         <p>A flaky fix is often a two-line <code>try/finally</code>; the value is the diagnosis behind it. So each
           session is handed the context that diagnosis needs up front &mdash; the failing seeds, the suspected
           leaker, a <b>Playbook</b>, a <b>Knowledge</b> base of past incidents, and a <b>Machine Snapshot</b> of
-          the env so it never re-pays setup (the cost that dominated our first runs).</p></div></div>
+          the env so it never re-pays setup.</p></div></div>
       <div class="step"><div class="idx">&rarr;</div><div><h3>Parallel, but not multi-agent</h3>
         <p>Clusters are independent, so the orchestrator runs them <b>in parallel</b> for throughput &mdash;
           bounded by a concurrency cap for cost. But each unit is still a <b>single-threaded agent</b> (per
@@ -272,7 +237,7 @@ flowchart TD
   </section>
 
   <section>
-    <div class="eyebrow">Why an autonomous agent</div>
+    <div class="eyebrow"><span class="enum">04</span> Why an autonomous agent</div>
     <h2>Cheaper alternatives, judged by the same validator</h2>
     <p class="lead2">An org has options short of Devin. The value of an independent bar is that it judges them
       all the same way. Here is what each does to the <code>bigquery-flask-g-asyncmock</code> cluster, and the
@@ -419,13 +384,13 @@ flowchart TD
         </tbody>
       </table>
     </div>
-    <p class="lead2" style="margin-top:18px;font-size:14px;">Every prior submission we surveyed stops at one of
-      these rows &mdash; open a PR, let CI (or the agent's own word) be the bar. Devin is the only approach that
-      fills the column an independent verifier actually checks.</p>
+    <p class="lead2" style="margin-top:18px;font-size:14.5px;">Each cheaper tool covers only part of this column.
+      Only an autonomous agent, held to an independent bar, fills all of it &mdash; diagnose the leak, fix the
+      root cause, survive re-verification, self-correct, and escalate a real product bug rather than mask it.</p>
   </section>
 
   <section>
-    <div class="eyebrow">Results</div>
+    <div class="eyebrow"><span class="enum">05</span> Results</div>
     <div class="headline">
       <div class="num">3</div>
       <div><div class="lead">times CI reported <b>green</b>, but the validator disagreed &mdash; caught before merge.</div>
@@ -441,7 +406,7 @@ flowchart TD
   </section>
 
   <section>
-    <div class="eyebrow">Live</div>
+    <div class="eyebrow"><span class="enum">06</span> Live</div>
     <h2>What's being remediated &mdash; and how it's decided</h2>
     
       
@@ -453,30 +418,50 @@ flowchart TD
           <div><span class="badge b-green">CI passing</span> <span class="badge b-amber">escalated</span>
             <span class="rem-links">&middot; <a href="https://github.com/catherineyinzhao/superset/pull/4207">PR</a> &middot; <a href="https://app.devin.ai/sessions/devin-mock-recaptcha-oauth-config-a0">session</a></span></div>
         </div>
-        <div class="facts">
-          <div class="k">Targets</div><div class="v">1 test(s):
-            <span class="mono">test_recaptcha_not_shown_for_federated_auth[4]</span>
-            &mdash; fail only under seeds <span class="mono">101, 303, 404</span></div>
-          <div class="k">Failure</div><div class="v mono">KeyError: 'OAUTH_PROVIDERS'  (flask_appbuilder/security/manager.py:532, via cached_common_bootstrap_data)</div>
-          <div class="k">Leak</div><div class="v">OAUTH_PROVIDERS is only set by an earlier test; flask_caching memoization compounds the leak</div>
-          <div class="k">Root-cause fix</div><div class="v fix">suspected PRODUCT bug (memoized config reads a possibly-absent key) -> escalate, do not edit the test</div>
+
+        <div class="block">
+          <div class="blk-lbl">The flake</div>
+          <div class="facts">
+            <div class="k">Targets</div><div class="v">1 test(s):
+              <span class="mono">test_recaptcha_not_shown_for_federated_auth[4]</span>
+              &mdash; pass in default order, fail only under seeds <span class="mono">101, 303, 404</span></div>
+            <div class="k">Failure</div><div class="v mono">KeyError: 'OAUTH_PROVIDERS'  (flask_appbuilder/security/manager.py:532, via cached_common_bootstrap_data)</div>
+          </div>
         </div>
+
+        <div class="block">
+          <div class="blk-lbl">Remediation &mdash; what Devin did</div>
+          <div class="facts" style="margin-bottom:12px;">
+            <div class="k">Reproduced</div><div class="v">confirmed the failure at suite scope under seeds <span class="mono">101, 303, 404</span></div>
+            <div class="k">Diagnosed</div><div class="v">OAUTH_PROVIDERS is only set by an earlier test; flask_caching memoization compounds the leak</div>
+            <div class="k">Fix</div><div class="v">suspected PRODUCT bug (memoized config reads a possibly-absent key) -> escalate, do not edit the test</div>
+          </div>
+          <pre class="code"><span class=""># no test-side patch applied -- this is a product defect:</span>
+<span class=""># cached_common_bootstrap_data does current_app.config['OAUTH_PROVIDERS']</span>
+<span class=""># (a hard key access, memoized). Escalated to a human; editing the</span>
+<span class=""># test would mask a real bug.</span>
+</pre>
+        </div>
+
         <div class="flag">&#9650; GitHub CI reported passing &mdash; the validator independently disagreed and caught it before merge.</div>
 
         
-        <div class="evidence">
-          <div class="et">Validator evidence (re-derived from the PR branch)</div>
-          <div class="row"><span class="lab">known-bad seeds</span> <span class="mono pass">101:pass</span> &middot; <span class="mono pass">303:pass</span> &middot; <span class="mono pass">404:pass</span></div>
-          <div class="row"><span class="lab">fresh seeds</span> <span class="mono pass">505:pass</span> &middot; <span class="mono pass">606:pass</span> &middot; <span class="mono pass">707:pass</span> &middot; <span class="mono pass">808:pass</span> &middot; <span class="mono pass">909:pass</span></div>
-          <div class="row"><span class="lab">diff scan</span>
-            <span class="pass">no skip / @flaky / retry / sleep</span></div>
-          <div class="row"><span class="lab">provenance</span>
-            <span class="fail">touched product code &rarr; escalate</span></div>
+        <div class="block">
+          <div class="blk-lbl">Independent verification &mdash; re-derived from the PR branch</div>
+          <div class="evidence">
+            <div class="row"><span class="lab">known-bad seeds</span> <span class="pass">101:pass</span> &middot; <span class="pass">303:pass</span> &middot; <span class="pass">404:pass</span></div>
+            <div class="row"><span class="lab">fresh seeds</span> <span class="pass">505:pass</span> &middot; <span class="pass">606:pass</span> &middot; <span class="pass">707:pass</span> &middot; <span class="pass">808:pass</span> &middot; <span class="pass">909:pass</span></div>
+            <div class="row"><span class="lab">diff scan</span>
+              <span class="pass">no skip / @flaky / retry / sleep</span></div>
+            <div class="row"><span class="lab">provenance</span>
+              <span class="fail">touched product code &rarr; escalate</span></div>
+          </div>
         </div>
         
 
-        <div class="trace">
-          <div class="trace-lbl">Decision trace</div>
+        <div class="block">
+          <div class="blk-lbl">Decision trace</div>
+          <div class="trace">
           <div class="t "><span class="dot"></span><span class="tk">queued</span><span class="tm">queued recaptcha-oauth-config</span></div>
           <div class="t b"><span class="dot"></span><span class="tk">dispatch</span><span class="tm">dispatched Devin for recaptcha-oauth-config</span></div>
           <div class="t "><span class="dot"></span><span class="tk">context</span><span class="tm">playbook:pb-flaky-state-isolation | snapshot:snap-superset-dev | knowledge:kb-superset-flaky-incidents</span></div>
@@ -485,6 +470,7 @@ flowchart TD
           <div class="t a"><span class="dot"></span><span class="tk">verdict</span><span class="tm">ESCALATED: fix touched product code under superset/ (or the session escalated a suspected product bug). Routed to a human -- not auto-stabilized.</span></div>
           <div class="t a"><span class="dot"></span><span class="tk">escalated</span><span class="tm">routed to human (product bug / escalation)</span></div>
           
+          </div>
         </div>
       </div>
     
@@ -497,30 +483,51 @@ flowchart TD
           <div><span class="badge b-green">CI passing</span> <span class="badge b-green">stabilized</span>
             <span class="rem-links">&middot; <a href="https://github.com/catherineyinzhao/superset/pull/4206">PR</a> &middot; <a href="https://app.devin.ai/sessions/devin-mock-csrf-exempt-blueprints-a0">session</a></span></div>
         </div>
-        <div class="facts">
-          <div class="k">Targets</div><div class="v">1 test(s):
-            <span class="mono">test_csrf_exempt_blueprints[app0]</span>
-            &mdash; fail only under seeds <span class="mono">303, 404</span></div>
-          <div class="k">Failure</div><div class="v mono">AssertionError: csrf._exempt_blueprints has extra item 'ApiKeyApi'  (api_test.py:34)</div>
-          <div class="k">Leak</div><div class="v">a prior test registers the ApiKeyApi blueprint as CSRF-exempt on the shared csrf object</div>
-          <div class="k">Root-cause fix</div><div class="v fix">isolate/reset the csrf exempt-blueprints set per test so registrations don't leak</div>
+
+        <div class="block">
+          <div class="blk-lbl">The flake</div>
+          <div class="facts">
+            <div class="k">Targets</div><div class="v">1 test(s):
+              <span class="mono">test_csrf_exempt_blueprints[app0]</span>
+              &mdash; pass in default order, fail only under seeds <span class="mono">303, 404</span></div>
+            <div class="k">Failure</div><div class="v mono">AssertionError: csrf._exempt_blueprints has extra item 'ApiKeyApi'  (api_test.py:34)</div>
+          </div>
         </div>
+
+        <div class="block">
+          <div class="blk-lbl">Remediation &mdash; what Devin did</div>
+          <div class="facts" style="margin-bottom:12px;">
+            <div class="k">Reproduced</div><div class="v">confirmed the failure at suite scope under seeds <span class="mono">303, 404</span></div>
+            <div class="k">Diagnosed</div><div class="v">a prior test registers the ApiKeyApi blueprint as CSRF-exempt on the shared csrf object</div>
+            <div class="k">Fix</div><div class="v">isolate/reset the csrf exempt-blueprints set per test so registrations don't leak</div>
+          </div>
+          <pre class="code"><span class="">@pytest.fixture(autouse=True)</span>
+<span class="">def _reset_csrf_exempt(app):</span>
+<span class="">    before = set(app.extensions['csrf']._exempt_blueprints)</span>
+<span class="">    yield</span>
+<span class="">    app.extensions['csrf']._exempt_blueprints = before</span>
+</pre>
+        </div>
+
         
 
         
-        <div class="evidence">
-          <div class="et">Validator evidence (re-derived from the PR branch)</div>
-          <div class="row"><span class="lab">known-bad seeds</span> <span class="mono pass">303:pass</span> &middot; <span class="mono pass">404:pass</span></div>
-          <div class="row"><span class="lab">fresh seeds</span> <span class="mono pass">505:pass</span> &middot; <span class="mono pass">606:pass</span> &middot; <span class="mono pass">707:pass</span> &middot; <span class="mono pass">808:pass</span> &middot; <span class="mono pass">909:pass</span></div>
-          <div class="row"><span class="lab">diff scan</span>
-            <span class="pass">no skip / @flaky / retry / sleep</span></div>
-          <div class="row"><span class="lab">provenance</span>
-            <span class="pass">test-side only</span> (<span class="mono">tests/unit_tests/security/conftest.py</span>)</div>
+        <div class="block">
+          <div class="blk-lbl">Independent verification &mdash; re-derived from the PR branch</div>
+          <div class="evidence">
+            <div class="row"><span class="lab">known-bad seeds</span> <span class="pass">303:pass</span> &middot; <span class="pass">404:pass</span></div>
+            <div class="row"><span class="lab">fresh seeds</span> <span class="pass">505:pass</span> &middot; <span class="pass">606:pass</span> &middot; <span class="pass">707:pass</span> &middot; <span class="pass">808:pass</span> &middot; <span class="pass">909:pass</span></div>
+            <div class="row"><span class="lab">diff scan</span>
+              <span class="pass">no skip / @flaky / retry / sleep</span></div>
+            <div class="row"><span class="lab">provenance</span>
+              <span class="pass">test-side only</span> (<span class="mono">tests/unit_tests/security/conftest.py</span>)</div>
+          </div>
         </div>
         
 
-        <div class="trace">
-          <div class="trace-lbl">Decision trace</div>
+        <div class="block">
+          <div class="blk-lbl">Decision trace</div>
+          <div class="trace">
           <div class="t "><span class="dot"></span><span class="tk">queued</span><span class="tm">queued csrf-exempt-blueprints</span></div>
           <div class="t b"><span class="dot"></span><span class="tk">dispatch</span><span class="tm">dispatched Devin for csrf-exempt-blueprints</span></div>
           <div class="t "><span class="dot"></span><span class="tk">context</span><span class="tm">playbook:pb-flaky-state-isolation | snapshot:snap-superset-dev | knowledge:kb-superset-flaky-incidents</span></div>
@@ -529,6 +536,7 @@ flowchart TD
           <div class="t g"><span class="dot"></span><span class="tk">verdict</span><span class="tm">Re-ran tests/unit_tests/ 8x (2 known-bad + 5 fresh seeds): 0/1 target failures, 0 regressions, no skip/retry/flaky markers added. STABILIZED.</span></div>
           <div class="t g"><span class="dot"></span><span class="tk">stabilized</span><span class="tm">PR ready for human review</span></div>
           
+          </div>
         </div>
       </div>
     
@@ -541,30 +549,50 @@ flowchart TD
           <div><span class="badge b-green">CI passing</span> <span class="badge b-green">stabilized</span>
             <span class="rem-links">&middot; <a href="https://github.com/catherineyinzhao/superset/pull/4205">PR</a> &middot; <a href="https://app.devin.ai/sessions/devin-mock-catalog-perms-metadata-leak-a0">session</a></span></div>
         </div>
-        <div class="facts">
-          <div class="k">Targets</div><div class="v">1 test(s):
-            <span class="mono">test_upgrade_catalog_perms</span>
-            &mdash; fail only under seeds <span class="mono">101, 202, 303, 404</span></div>
-          <div class="k">Failure</div><div class="v mono">AssertionError: query(ViewMenu.name, Permission.name).all() has one extra row  (catalogs_test.py:189)</div>
-          <div class="k">Leak</div><div class="v">earlier tests leak ViewMenu/Permission rows into the shared in-memory metadata DB</div>
-          <div class="k">Root-cause fix</div><div class="v fix">roll back / isolate the metadata session so leaked rows do not persist across tests</div>
+
+        <div class="block">
+          <div class="blk-lbl">The flake</div>
+          <div class="facts">
+            <div class="k">Targets</div><div class="v">1 test(s):
+              <span class="mono">test_upgrade_catalog_perms</span>
+              &mdash; pass in default order, fail only under seeds <span class="mono">101, 202, 303, 404</span></div>
+            <div class="k">Failure</div><div class="v mono">AssertionError: query(ViewMenu.name, Permission.name).all() has one extra row  (catalogs_test.py:189)</div>
+          </div>
         </div>
+
+        <div class="block">
+          <div class="blk-lbl">Remediation &mdash; what Devin did</div>
+          <div class="facts" style="margin-bottom:12px;">
+            <div class="k">Reproduced</div><div class="v">confirmed the failure at suite scope under seeds <span class="mono">101, 202, 303, 404</span></div>
+            <div class="k">Diagnosed</div><div class="v">earlier tests leak ViewMenu/Permission rows into the shared in-memory metadata DB</div>
+            <div class="k">Fix</div><div class="v">roll back / isolate the metadata session so leaked rows do not persist across tests</div>
+          </div>
+          <pre class="code"><span class="">@pytest.fixture(autouse=True)</span>
+<span class="">def _rollback_metadata(session):</span>
+<span class="">    yield</span>
+<span class="">    session.rollback()   # drop ViewMenu/Permission rows leaked by this test</span>
+</pre>
+        </div>
+
         
 
         
-        <div class="evidence">
-          <div class="et">Validator evidence (re-derived from the PR branch)</div>
-          <div class="row"><span class="lab">known-bad seeds</span> <span class="mono pass">101:pass</span> &middot; <span class="mono pass">202:pass</span> &middot; <span class="mono pass">303:pass</span> &middot; <span class="mono pass">404:pass</span></div>
-          <div class="row"><span class="lab">fresh seeds</span> <span class="mono pass">505:pass</span> &middot; <span class="mono pass">606:pass</span> &middot; <span class="mono pass">707:pass</span> &middot; <span class="mono pass">808:pass</span> &middot; <span class="mono pass">909:pass</span></div>
-          <div class="row"><span class="lab">diff scan</span>
-            <span class="pass">no skip / @flaky / retry / sleep</span></div>
-          <div class="row"><span class="lab">provenance</span>
-            <span class="pass">test-side only</span> (<span class="mono">tests/unit_tests/migrations/conftest.py</span>)</div>
+        <div class="block">
+          <div class="blk-lbl">Independent verification &mdash; re-derived from the PR branch</div>
+          <div class="evidence">
+            <div class="row"><span class="lab">known-bad seeds</span> <span class="pass">101:pass</span> &middot; <span class="pass">202:pass</span> &middot; <span class="pass">303:pass</span> &middot; <span class="pass">404:pass</span></div>
+            <div class="row"><span class="lab">fresh seeds</span> <span class="pass">505:pass</span> &middot; <span class="pass">606:pass</span> &middot; <span class="pass">707:pass</span> &middot; <span class="pass">808:pass</span> &middot; <span class="pass">909:pass</span></div>
+            <div class="row"><span class="lab">diff scan</span>
+              <span class="pass">no skip / @flaky / retry / sleep</span></div>
+            <div class="row"><span class="lab">provenance</span>
+              <span class="pass">test-side only</span> (<span class="mono">tests/unit_tests/migrations/conftest.py</span>)</div>
+          </div>
         </div>
         
 
-        <div class="trace">
-          <div class="trace-lbl">Decision trace</div>
+        <div class="block">
+          <div class="blk-lbl">Decision trace</div>
+          <div class="trace">
           <div class="t "><span class="dot"></span><span class="tk">queued</span><span class="tm">queued catalog-perms-metadata-leak</span></div>
           <div class="t b"><span class="dot"></span><span class="tk">dispatch</span><span class="tm">dispatched Devin for catalog-perms-metadata-leak</span></div>
           <div class="t "><span class="dot"></span><span class="tk">context</span><span class="tm">playbook:pb-flaky-state-isolation | snapshot:snap-superset-dev | knowledge:kb-superset-flaky-incidents</span></div>
@@ -577,6 +605,7 @@ flowchart TD
           <div class="t g"><span class="dot"></span><span class="tk">verdict</span><span class="tm">Re-ran tests/unit_tests/ 10x (4 known-bad + 5 fresh seeds): 0/1 target failures, 0 regressions, no skip/retry/flaky markers added. STABILIZED.</span></div>
           <div class="t g"><span class="dot"></span><span class="tk">stabilized</span><span class="tm">PR ready for human review</span></div>
           
+          </div>
         </div>
       </div>
     
@@ -589,30 +618,56 @@ flowchart TD
           <div><span class="badge b-green">CI passing</span> <span class="badge b-green">stabilized</span>
             <span class="rem-links">&middot; <a href="https://github.com/catherineyinzhao/superset/pull/4204">PR</a> &middot; <a href="https://app.devin.ai/sessions/devin-mock-dataset-import-allowlist-a0">session</a></span></div>
         </div>
-        <div class="facts">
-          <div class="k">Targets</div><div class="v">1 test(s):
-            <span class="mono">test_import_column_allowed_data_url</span>
-            &mdash; fail only under seeds <span class="mono">202, 303, 404</span></div>
-          <div class="k">Failure</div><div class="v mono">DatasetForbiddenDataURI: Data URI is not allowed (utils.py:108); under seed 404, re.error: nothing to repeat</div>
-          <div class="k">Leak</div><div class="v">test_validate_data_uri mutates app.config['DATASET_IMPORT_ALLOWED_DATA_URLS'] and never restores it</div>
-          <div class="k">Root-cause fix</div><div class="v fix">wrap the config mutation in try/finally to restore the original allow-list</div>
+
+        <div class="block">
+          <div class="blk-lbl">The flake</div>
+          <div class="facts">
+            <div class="k">Targets</div><div class="v">1 test(s):
+              <span class="mono">test_import_column_allowed_data_url</span>
+              &mdash; pass in default order, fail only under seeds <span class="mono">202, 303, 404</span></div>
+            <div class="k">Failure</div><div class="v mono">DatasetForbiddenDataURI: Data URI is not allowed (utils.py:108); under seed 404, re.error: nothing to repeat</div>
+          </div>
         </div>
+
+        <div class="block">
+          <div class="blk-lbl">Remediation &mdash; what Devin did</div>
+          <div class="facts" style="margin-bottom:12px;">
+            <div class="k">Reproduced</div><div class="v">confirmed the failure at suite scope under seeds <span class="mono">202, 303, 404</span></div>
+            <div class="k">Diagnosed</div><div class="v">test_validate_data_uri mutates app.config['DATASET_IMPORT_ALLOWED_DATA_URLS'] and never restores it</div>
+            <div class="k">Fix</div><div class="v">wrap the config mutation in try/finally to restore the original allow-list</div>
+          </div>
+          <pre class="code"><span class="del">-    current_app.config['DATASET_IMPORT_ALLOWED_DATA_URLS'] = allowed_urls</span>
+<span class="del">-    if expected:</span>
+<span class="del">-        validate_data_uri(data_uri)</span>
+<span class="add">+    original = current_app.config['DATASET_IMPORT_ALLOWED_DATA_URLS']</span>
+<span class="add">+    try:</span>
+<span class="add">+        current_app.config['DATASET_IMPORT_ALLOWED_DATA_URLS'] = allowed_urls</span>
+<span class="add">+        if expected:</span>
+<span class="add">+            validate_data_uri(data_uri)</span>
+<span class="add">+    finally:</span>
+<span class="add">+        current_app.config['DATASET_IMPORT_ALLOWED_DATA_URLS'] = original</span>
+</pre>
+        </div>
+
         
 
         
-        <div class="evidence">
-          <div class="et">Validator evidence (re-derived from the PR branch)</div>
-          <div class="row"><span class="lab">known-bad seeds</span> <span class="mono pass">202:pass</span> &middot; <span class="mono pass">303:pass</span> &middot; <span class="mono pass">404:pass</span></div>
-          <div class="row"><span class="lab">fresh seeds</span> <span class="mono pass">505:pass</span> &middot; <span class="mono pass">606:pass</span> &middot; <span class="mono pass">707:pass</span> &middot; <span class="mono pass">808:pass</span> &middot; <span class="mono pass">909:pass</span></div>
-          <div class="row"><span class="lab">diff scan</span>
-            <span class="pass">no skip / @flaky / retry / sleep</span></div>
-          <div class="row"><span class="lab">provenance</span>
-            <span class="pass">test-side only</span> (<span class="mono">tests/unit_tests/datasets/conftest.py</span>)</div>
+        <div class="block">
+          <div class="blk-lbl">Independent verification &mdash; re-derived from the PR branch</div>
+          <div class="evidence">
+            <div class="row"><span class="lab">known-bad seeds</span> <span class="pass">202:pass</span> &middot; <span class="pass">303:pass</span> &middot; <span class="pass">404:pass</span></div>
+            <div class="row"><span class="lab">fresh seeds</span> <span class="pass">505:pass</span> &middot; <span class="pass">606:pass</span> &middot; <span class="pass">707:pass</span> &middot; <span class="pass">808:pass</span> &middot; <span class="pass">909:pass</span></div>
+            <div class="row"><span class="lab">diff scan</span>
+              <span class="pass">no skip / @flaky / retry / sleep</span></div>
+            <div class="row"><span class="lab">provenance</span>
+              <span class="pass">test-side only</span> (<span class="mono">tests/unit_tests/datasets/conftest.py</span>)</div>
+          </div>
         </div>
         
 
-        <div class="trace">
-          <div class="trace-lbl">Decision trace</div>
+        <div class="block">
+          <div class="blk-lbl">Decision trace</div>
+          <div class="trace">
           <div class="t "><span class="dot"></span><span class="tk">queued</span><span class="tm">queued dataset-import-allowlist</span></div>
           <div class="t b"><span class="dot"></span><span class="tk">dispatch</span><span class="tm">dispatched Devin for dataset-import-allowlist</span></div>
           <div class="t "><span class="dot"></span><span class="tk">context</span><span class="tm">playbook:pb-flaky-state-isolation | snapshot:snap-superset-dev | knowledge:kb-superset-flaky-incidents</span></div>
@@ -626,6 +681,7 @@ flowchart TD
           <div class="t g"><span class="dot"></span><span class="tk">verdict</span><span class="tm">Re-ran tests/unit_tests/ 9x (3 known-bad + 5 fresh seeds): 0/1 target failures, 0 regressions, no skip/retry/flaky markers added. STABILIZED.</span></div>
           <div class="t g"><span class="dot"></span><span class="tk">stabilized</span><span class="tm">PR ready for human review</span></div>
           
+          </div>
         </div>
       </div>
     
@@ -638,30 +694,52 @@ flowchart TD
           <div><span class="badge b-green">CI passing</span> <span class="badge b-green">stabilized</span>
             <span class="rem-links">&middot; <a href="https://github.com/catherineyinzhao/superset/pull/4201">PR</a> &middot; <a href="https://app.devin.ai/sessions/devin-mock-bigquery-flask-g-asyncmock-a0">session</a></span></div>
         </div>
-        <div class="facts">
-          <div class="k">Targets</div><div class="v">5 test(s):
-            <span class="mono">test_fetch_data_converts_bigquery_row_objects</span>, <span class="mono">test_fetch_data_empty_result</span>, <span class="mono">test_fetch_data_fallback_on_exception</span>, <span class="mono">test_fetch_data_truncated_by_memory_limit</span>, <span class="mono">test_fetch_data_within_memory_limit</span>
-            &mdash; fail only under seeds <span class="mono">101, 202, 303, 404</span></div>
-          <div class="k">Failure</div><div class="v mono">AssertionError: assert <AsyncMock name='g.bq_memory_limited'> is False  (test_bigquery.py:660)</div>
-          <div class="k">Leak</div><div class="v">a prior test leaks an async/global flask.g context, so mocker.patch('...bigquery.g') resolves to AsyncMock</div>
-          <div class="k">Root-cause fix</div><div class="v fix">reset the flask.g/app-context between tests (fixture teardown) so the patch is a MagicMock in any order</div>
+
+        <div class="block">
+          <div class="blk-lbl">The flake</div>
+          <div class="facts">
+            <div class="k">Targets</div><div class="v">5 test(s):
+              <span class="mono">test_fetch_data_converts_bigquery_row_objects</span>, <span class="mono">test_fetch_data_empty_result</span>, <span class="mono">test_fetch_data_fallback_on_exception</span>, <span class="mono">test_fetch_data_truncated_by_memory_limit</span>, <span class="mono">test_fetch_data_within_memory_limit</span>
+              &mdash; pass in default order, fail only under seeds <span class="mono">101, 202, 303, 404</span></div>
+            <div class="k">Failure</div><div class="v mono">AssertionError: assert <AsyncMock name='g.bq_memory_limited'> is False  (test_bigquery.py:660)</div>
+          </div>
         </div>
+
+        <div class="block">
+          <div class="blk-lbl">Remediation &mdash; what Devin did</div>
+          <div class="facts" style="margin-bottom:12px;">
+            <div class="k">Reproduced</div><div class="v">confirmed the failure at suite scope under seeds <span class="mono">101, 202, 303, 404</span></div>
+            <div class="k">Diagnosed</div><div class="v">a prior test leaks an async/global flask.g context, so mocker.patch('...bigquery.g') resolves to AsyncMock</div>
+            <div class="k">Fix</div><div class="v">reset the flask.g/app-context between tests (fixture teardown) so the patch is a MagicMock in any order</div>
+          </div>
+          <pre class="code"><span class="">@pytest.fixture(autouse=True)</span>
+<span class="">def _reset_flask_g():</span>
+<span class="">    yield</span>
+<span class="">    from flask import g</span>
+<span class="">    for k in list(vars(g)):</span>
+<span class="">        g.pop(k, None)   # don't leak an async g into the next test</span>
+</pre>
+        </div>
+
         
 
         
-        <div class="evidence">
-          <div class="et">Validator evidence (re-derived from the PR branch)</div>
-          <div class="row"><span class="lab">known-bad seeds</span> <span class="mono pass">101:pass</span> &middot; <span class="mono pass">202:pass</span> &middot; <span class="mono pass">303:pass</span> &middot; <span class="mono pass">404:pass</span></div>
-          <div class="row"><span class="lab">fresh seeds</span> <span class="mono pass">505:pass</span> &middot; <span class="mono pass">606:pass</span> &middot; <span class="mono pass">707:pass</span> &middot; <span class="mono pass">808:pass</span> &middot; <span class="mono pass">909:pass</span></div>
-          <div class="row"><span class="lab">diff scan</span>
-            <span class="pass">no skip / @flaky / retry / sleep</span></div>
-          <div class="row"><span class="lab">provenance</span>
-            <span class="pass">test-side only</span> (<span class="mono">tests/unit_tests/db_engine_specs/conftest.py</span>)</div>
+        <div class="block">
+          <div class="blk-lbl">Independent verification &mdash; re-derived from the PR branch</div>
+          <div class="evidence">
+            <div class="row"><span class="lab">known-bad seeds</span> <span class="pass">101:pass</span> &middot; <span class="pass">202:pass</span> &middot; <span class="pass">303:pass</span> &middot; <span class="pass">404:pass</span></div>
+            <div class="row"><span class="lab">fresh seeds</span> <span class="pass">505:pass</span> &middot; <span class="pass">606:pass</span> &middot; <span class="pass">707:pass</span> &middot; <span class="pass">808:pass</span> &middot; <span class="pass">909:pass</span></div>
+            <div class="row"><span class="lab">diff scan</span>
+              <span class="pass">no skip / @flaky / retry / sleep</span></div>
+            <div class="row"><span class="lab">provenance</span>
+              <span class="pass">test-side only</span> (<span class="mono">tests/unit_tests/db_engine_specs/conftest.py</span>)</div>
+          </div>
         </div>
         
 
-        <div class="trace">
-          <div class="trace-lbl">Decision trace</div>
+        <div class="block">
+          <div class="blk-lbl">Decision trace</div>
+          <div class="trace">
           <div class="t "><span class="dot"></span><span class="tk">queued</span><span class="tm">queued bigquery-flask-g-asyncmock</span></div>
           <div class="t b"><span class="dot"></span><span class="tk">dispatch</span><span class="tm">dispatched Devin for bigquery-flask-g-asyncmock</span></div>
           <div class="t "><span class="dot"></span><span class="tk">context</span><span class="tm">playbook:pb-flaky-state-isolation | snapshot:snap-superset-dev | knowledge:kb-superset-flaky-incidents</span></div>
@@ -670,6 +748,7 @@ flowchart TD
           <div class="t g"><span class="dot"></span><span class="tk">verdict</span><span class="tm">Re-ran tests/unit_tests/ 10x (4 known-bad + 5 fresh seeds): 0/5 target failures, 0 regressions, no skip/retry/flaky markers added. STABILIZED.</span></div>
           <div class="t g"><span class="dot"></span><span class="tk">stabilized</span><span class="tm">PR ready for human review</span></div>
           
+          </div>
         </div>
       </div>
     

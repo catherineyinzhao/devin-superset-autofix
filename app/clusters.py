@@ -29,6 +29,7 @@ class Cluster:
     failure_excerpt: str = ""
     leaker: str = ""
     fix_note: str = ""
+    fix_diff: str = ""  # short representative snippet of the root-cause fix
     # Devin Playbook key for this flake class (-> a reusable remediation
     # procedure). All current clusters are order-dependence/shared-state, so they
     # share the "state-isolation" playbook; resolved to a real id via env.
@@ -72,6 +73,14 @@ CLUSTERS: List[Cluster] = [
         failure_excerpt="AssertionError: assert <AsyncMock name='g.bq_memory_limited'> is False  (test_bigquery.py:660)",
         leaker="a prior test leaks an async/global flask.g context, so mocker.patch('...bigquery.g') resolves to AsyncMock",
         fix_note="reset the flask.g/app-context between tests (fixture teardown) so the patch is a MagicMock in any order",
+        fix_diff=(
+            "@pytest.fixture(autouse=True)\n"
+            "def _reset_flask_g():\n"
+            "    yield\n"
+            "    from flask import g\n"
+            "    for k in list(vars(g)):\n"
+            "        g.pop(k, None)   # don't leak an async g into the next test"
+        ),
         prompt_file="docs/prompts/fix-bigquery-flaky.md",
         labels=["devin-fix", "flake-class:order-dependence", "cluster:bigquery-flask-g"],
         human_baseline_hours=5.0,  # 5 tests, subtle AsyncMock-vs-MagicMock leak
@@ -93,6 +102,18 @@ CLUSTERS: List[Cluster] = [
         failure_excerpt="DatasetForbiddenDataURI: Data URI is not allowed (utils.py:108); under seed 404, re.error: nothing to repeat",
         leaker="test_validate_data_uri mutates app.config['DATASET_IMPORT_ALLOWED_DATA_URLS'] and never restores it",
         fix_note="wrap the config mutation in try/finally to restore the original allow-list",
+        fix_diff=(
+            "-    current_app.config['DATASET_IMPORT_ALLOWED_DATA_URLS'] = allowed_urls\n"
+            "-    if expected:\n"
+            "-        validate_data_uri(data_uri)\n"
+            "+    original = current_app.config['DATASET_IMPORT_ALLOWED_DATA_URLS']\n"
+            "+    try:\n"
+            "+        current_app.config['DATASET_IMPORT_ALLOWED_DATA_URLS'] = allowed_urls\n"
+            "+        if expected:\n"
+            "+            validate_data_uri(data_uri)\n"
+            "+    finally:\n"
+            "+        current_app.config['DATASET_IMPORT_ALLOWED_DATA_URLS'] = original"
+        ),
         prompt_file="docs/prompts/fix-dataset-import-flaky.md",
         labels=["devin-fix", "flake-class:order-dependence", "cluster:dataset-import"],
         human_baseline_hours=3.0,
@@ -116,6 +137,12 @@ CLUSTERS: List[Cluster] = [
         failure_excerpt="AssertionError: query(ViewMenu.name, Permission.name).all() has one extra row  (catalogs_test.py:189)",
         leaker="earlier tests leak ViewMenu/Permission rows into the shared in-memory metadata DB",
         fix_note="roll back / isolate the metadata session so leaked rows do not persist across tests",
+        fix_diff=(
+            "@pytest.fixture(autouse=True)\n"
+            "def _rollback_metadata(session):\n"
+            "    yield\n"
+            "    session.rollback()   # drop ViewMenu/Permission rows leaked by this test"
+        ),
         prompt_file="docs/prompts/fix-catalog-perms-flaky.md",
         labels=["devin-fix", "flake-class:order-dependence", "cluster:catalog-perms"],
         human_baseline_hours=3.0,
@@ -137,6 +164,13 @@ CLUSTERS: List[Cluster] = [
         failure_excerpt="AssertionError: csrf._exempt_blueprints has extra item 'ApiKeyApi'  (api_test.py:34)",
         leaker="a prior test registers the ApiKeyApi blueprint as CSRF-exempt on the shared csrf object",
         fix_note="isolate/reset the csrf exempt-blueprints set per test so registrations don't leak",
+        fix_diff=(
+            "@pytest.fixture(autouse=True)\n"
+            "def _reset_csrf_exempt(app):\n"
+            "    before = set(app.extensions['csrf']._exempt_blueprints)\n"
+            "    yield\n"
+            "    app.extensions['csrf']._exempt_blueprints = before"
+        ),
         prompt_file="docs/prompts/fix-csrf-exempt-flaky.md",
         labels=["devin-fix", "flake-class:order-dependence", "cluster:csrf-exempt"],
         human_baseline_hours=2.0,
@@ -157,6 +191,12 @@ CLUSTERS: List[Cluster] = [
         failure_excerpt="KeyError: 'OAUTH_PROVIDERS'  (flask_appbuilder/security/manager.py:532, via cached_common_bootstrap_data)",
         leaker="OAUTH_PROVIDERS is only set by an earlier test; flask_caching memoization compounds the leak",
         fix_note="suspected PRODUCT bug (memoized config reads a possibly-absent key) -> escalate, do not edit the test",
+        fix_diff=(
+            "# no test-side patch applied -- this is a product defect:\n"
+            "# cached_common_bootstrap_data does current_app.config['OAUTH_PROVIDERS']\n"
+            "# (a hard key access, memoized). Escalated to a human; editing the\n"
+            "# test would mask a real bug."
+        ),
         prompt_file="docs/prompts/fix-recaptcha-flaky.md",
         labels=["devin-fix", "flake-class:order-dependence", "cluster:recaptcha-oauth"],
         human_baseline_hours=3.0,
