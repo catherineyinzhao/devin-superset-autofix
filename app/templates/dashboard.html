@@ -7,6 +7,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'base', securityLevel: 'loose',
+      flowchart: { curve: 'basis', useMaxWidth: true },
+      themeVariables: { fontFamily: 'Inter, sans-serif', fontSize: '13px',
+        primaryColor: '#f7f8fa', primaryBorderColor: '#d4d8e0', primaryTextColor: '#0b0d12',
+        lineColor: '#9aa0aa', secondaryColor: '#eef1ff', tertiaryColor: '#ffffff' } });
+  </script>
   <style>
     :root{
       --bg:#ffffff; --surface:#f7f8fa; --surface2:#eceef2; --border:#e6e8ee; --border2:#d4d8e0;
@@ -73,6 +81,16 @@
     .cnote{font-size:12px;color:var(--muted);margin-top:10px;font-family:var(--mono);line-height:1.5;}
     .branch3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
     .loopnote{font-size:11.5px;font-family:var(--mono);color:var(--amber);margin-top:11px;line-height:1.5;}
+
+    /* mermaid harness graph */
+    .mermaid{display:flex;justify-content:center;margin:6px 0 2px;min-height:40px;}
+    .mermaid svg{max-width:100%;height:auto;}
+    .graph-fallback{font-size:11px;color:var(--faint);text-align:center;margin-top:6px;font-family:var(--mono);}
+    .lpts{display:grid;grid-template-columns:1fr 1fr;gap:22px 40px;margin-top:30px;}
+    .lp{display:flex;gap:14px;}
+    .lp .m{color:var(--accent);font-size:16px;line-height:1.2;}
+    .lp h3{font-size:14.5px;color:var(--ink);margin:0 0 4px;font-weight:700;}
+    .lp p{margin:0;font-size:13.5px;color:var(--body);line-height:1.55;}
 
     /* steps */
     .steps{display:grid;grid-template-columns:1fr 1fr;gap:28px 44px;}
@@ -182,49 +200,57 @@
   </section>
 
   <section>
-    <div class="eyebrow">The architecture</div>
-    <h2>A single agent, wrapped in a deterministic verifier</h2>
-    <p class="lead2">One Devin agent does the engineering (per Cognition's own "don't build multi-agents":
-      single-threaded, full context). The trust layer around it is <b>deterministic</b> &mdash; execution and
-      static analysis, <b>not another LLM judge</b> that could share the agent's blind spots.</p>
-    <div class="flow">
-      <div class="fstage"><span class="fl">Detect</span>
-        <div class="fb">A scheduled scan re-runs the suite under many seed orderings (<code>pytest-randomly</code>);
-          tests that pass-sometimes/fail-sometimes are flaky. Here: <b>9 flaky tests &rarr; {{ metrics.total }} root-cause clusters</b>,
-          each filed as a <code>devin-fix</code> issue.</div></div>
-      <div class="fdown">&darr;</div>
-      <div class="fstage"><span class="fl">Dispatch</span>
-        <div class="fb">The orchestrator is idempotent and <b>fans out across clusters in parallel</b>, bounded by a
-          concurrency cap (excess queues) so a large scan can't blow the ACU budget.
-          <div class="chips">
-            <div class="chip"><span class="ct">Devin session</span><span class="cs">1 agent, full context</span></div>
-            <div class="chip"><span class="ct">Devin session</span><span class="cs">in parallel...</span></div>
-            <div class="chip"><span class="ct">Devin session</span><span class="cs">...independent clusters</span></div>
-          </div>
-          <div class="cnote">each carries Playbook &middot; Knowledge &middot; Machine Snapshot &nbsp;|&nbsp; reproduce under bad seeds &rarr; bisect the leaking predecessor &rarr; fix root cause &rarr; open PR</div>
-        </div></div>
-      <div class="fdown">&darr;<span class="l">PRs open; CI runs once, default order &rarr; reports green</span></div>
-      <div class="fstage val"><span class="fl">Verify &middot; independent, deterministic (not an agent)</span>
-        <div class="fb">Re-derived from a <b>fresh clone of each PR branch</b> &mdash; never CI, never the agent's word. Four gates:
-          <div class="chips">
-            <div class="chip"><span class="ct">seed sweep</span><span class="cs">known-bad + K fresh orderings; 0 target failures</span></div>
-            <div class="chip"><span class="ct">anti-cheat</span><span class="cs">reject skip/@flaky/retry/sleep</span></div>
-            <div class="chip"><span class="ct">provenance</span><span class="cs">test-side only, else escalate</span></div>
-            <div class="chip"><span class="ct">neighbor</span><span class="cs">no new failures elsewhere</span></div>
-          </div>
-        </div></div>
-      <div class="fdown">&darr;<span class="l">verdict</span></div>
-      <div class="fstage"><span class="fl">Route</span>
-        <div class="branch3">
-          <div class="out good"><div class="h">stabilized</div><div class="s">&rarr; ready for human review</div></div>
-          <div class="out warn"><div class="h">cheat / still-flaky / regressed</div><div class="s">&#8635; feedback loop</div></div>
-          <div class="out warn"><div class="h">product bug</div><div class="s">&rarr; escalate to a human</div></div>
-        </div>
-        <div class="loopnote">&#8635; the feedback loop returns the validator's <b>exact evidence</b> (the seed that still fails, the forbidden pattern) to the <b>same</b> Devin session &mdash; bounded to a few rounds, after which a circuit-breaker escalates rather than burn ACU.</div>
-      </div>
-      <div class="fdown">&darr;</div>
-      <div class="fstage"><span class="fl">Observe</span>
-        <div class="fb">Live dashboard &middot; the GitHub issue tracker as a status board &middot; the validator's report posted on the PR &middot; metrics (eng-hours credited <b>only on verified fixes</b>).</div></div>
+    <div class="eyebrow">The harness</div>
+    <h2>A bounded recursive correction loop</h2>
+    <p class="lead2">The harness isn't a pipeline that ends at "PR opened" &mdash; it's a <b>closed loop</b> that
+      runs until a fix is provably stable or it knowingly hands off. One Devin agent does the engineering
+      (single-threaded, full context); the trust layer around it is <b>deterministic</b> &mdash; execution and
+      static analysis, not another LLM judge that could share the agent's blind spots.</p>
+
+    <pre class="mermaid">
+flowchart TD
+  scan["Scheduled scan<br/>suite re-run across seed orderings"] --> clusters["9 flaky tests, {{ metrics.total }} root-cause clusters<br/>filed as devin-fix issues"]
+  clusters --> orch{{"Orchestrator<br/>idempotent, bounded concurrency"}}
+  orch -->|"fan out (parallel)"| s1["Devin session A<br/>1 agent + Playbook / Knowledge / Snapshot"]
+  orch --> s2["Devin session B"]
+  orch --> s3["Devin session C"]
+  s1 -->|"reproduce, bisect leaker, fix root, open PR"| pr["Pull request<br/>CI runs once, reports green"]
+  pr --> val["Independent validator (fresh clone, deterministic)<br/>seed sweep / anti-cheat / provenance / neighbor"]
+  val --> verdict{"verdict"}
+  verdict -->|"stabilized"| done(["Ready for human review"])
+  verdict -->|"product bug"| esc(["Escalate to a human"])
+  verdict -->|"cheat / still-flaky / regressed"| gate{"rounds left?"}
+  gate -->|"yes: thread exact evidence back"| s1
+  gate -->|"no: circuit breaker"| esc
+  classDef val fill:#ffffff,stroke:#0b0d12,stroke-width:2px,color:#0b0d12;
+  classDef good fill:#e8f5ec,stroke:#15803d,color:#15803d;
+  classDef warn fill:#f7eddc,stroke:#b25e09,color:#b25e09;
+  class val val;
+  class done good;
+  class esc warn;
+    </pre>
+    <div class="graph-fallback">The back-edge (verdict &rarr; rounds left? &rarr; session) is the recursion: a rejected PR loops back to the same session with concrete evidence.</div>
+
+    <div class="lpts">
+      <div class="lp"><div class="m">&#8635;</div><div><h3>It's closed-loop control</h3>
+        <p>The validator is the <b>sensor</b>, the verdict is the <b>error signal</b>, the feedback message is the
+          <b>corrective action</b>, and Devin is the <b>actuator</b>. The loop drives toward one setpoint:
+          a fix that is statistically stable and not gamed.</p></div></div>
+      <div class="lp"><div class="m">&#8635;</div><div><h3>Feedback is externally grounded</h3>
+        <p>Each turn carries <b>concrete, executable evidence</b> &mdash; the exact seed that still fails, the
+          forbidden pattern found &mdash; not "are you sure?". Intrinsic self-correction degrades
+          (Huang et al. 2023); correction grounded in an external signal is the regime that works.</p></div></div>
+      <div class="lp"><div class="m">&#8635;</div><div><h3>Bounded recursion, full memory</h3>
+        <p>The loop is depth-capped, and because the session is single-threaded it retains the <b>entire trace
+          of prior attempts</b> (per <a href="https://cognition.ai/blog/dont-build-multi-agents">Don't Build
+          Multi-Agents</a>) &mdash; each round builds on the last instead of restarting cold.</p></div></div>
+      <div class="lp"><div class="m">&#8635;</div><div><h3>Three exits, never a hang</h3>
+        <p><b>Setpoint reached</b> &rarr; ready for review. <b>Out of the loop's domain</b> (a product bug)
+          &rarr; escalate. <b>Non-convergence</b> (rounds exhausted or oscillation) &rarr; a circuit-breaker
+          escalates rather than spin and burn ACU. The loop never silently gives up or loops forever.</p></div></div>
+      <div class="lp"><div class="m">&#8635;</div><div><h3>Many loops, in parallel</h3>
+        <p>One loop runs per cluster, and independent clusters run <b>concurrently</b> (bounded for cost).
+          Parallelism is across loops, never sub-agents inside one &mdash; throughput without conflicting decisions.</p></div></div>
     </div>
   </section>
 
