@@ -4,92 +4,84 @@
   <meta charset="utf-8">
   <meta http-equiv="refresh" content="5">
   <title>Devin Flaky-Test Autofix</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root{
-      --bg:#ffffff; --surface:#f7f8fa; --surface2:#f0f2f5; --border:#e5e7eb;
-      --ink:#16181d; --body:#3d4350; --muted:#6b7280; --faint:#9ca3af;
-      --accent:#2563eb; --green:#16a34a; --red:#dc2626; --amber:#b45309; --purple:#7c3aed;
+      --bg:#ffffff; --surface:#f7f8fa; --surface2:#eef1f5; --border:#e6e8ec; --border2:#dadde2;
+      --ink:#101317; --body:#454b56; --muted:#737a86; --faint:#a2a8b2;
+      --accent:#2563eb; --green:#15803d; --red:#dc2626; --amber:#b45309; --purple:#7c3aed;
     }
     *{box-sizing:border-box;}
     body{margin:0;background:var(--bg);color:var(--body);
-      font:15px/1.6 'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
-      -webkit-font-smoothing:antialiased;}
-    .wrap{max-width:1080px;margin:0 auto;padding:56px 28px 80px;}
-    h1{font-size:30px;line-height:1.15;margin:0;color:var(--ink);font-weight:700;letter-spacing:-.02em;}
-    .tagline{font-size:17px;color:var(--muted);margin:14px 0 0;max-width:680px;}
+      font:15px/1.6 'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+      -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+    .wrap{max-width:1000px;margin:0 auto;padding:60px 28px 90px;}
+    a{color:var(--accent);text-decoration:none;} a:hover{text-decoration:underline;}
+
+    h1{font-size:32px;line-height:1.1;margin:0;color:var(--ink);font-weight:800;letter-spacing:-.025em;}
+    .tagline{font-size:17px;color:var(--muted);margin:16px 0 0;max-width:660px;line-height:1.5;}
     .tagline b{color:var(--ink);font-weight:600;}
-    .repo{font-size:13px;color:var(--faint);margin-top:14px;}
-    .repo a{color:var(--accent);text-decoration:none;}
+    .repo{font-size:13px;color:var(--faint);margin-top:16px;}
 
-    section{margin-top:56px;}
-    .eyebrow{font-size:12px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;}
-    h2{font-size:22px;color:var(--ink);font-weight:700;letter-spacing:-.01em;margin:0 0 20px;}
+    section{margin-top:60px;}
+    .eyebrow{font-size:11.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;}
+    h2{font-size:23px;color:var(--ink);font-weight:700;letter-spacing:-.015em;margin:0 0 22px;}
 
-    /* headline contrast */
-    .headline{border:1px solid var(--border);border-radius:16px;padding:30px 34px;background:var(--surface);
-      display:flex;gap:26px;align-items:center;}
-    .headline .num{font-size:60px;font-weight:800;color:var(--red);line-height:.9;letter-spacing:-.03em;}
-    .headline .lead{font-size:18px;color:var(--ink);font-weight:600;}
-    .headline .sub{font-size:14px;color:var(--muted);margin-top:6px;font-weight:400;}
+    .headline{border:1px solid var(--border);border-radius:16px;padding:30px 36px;background:var(--surface);display:flex;gap:28px;align-items:center;}
+    .headline .num{font-size:64px;font-weight:800;color:var(--red);line-height:.85;letter-spacing:-.04em;min-width:70px;text-align:center;}
+    .headline .lead{font-size:18px;color:var(--ink);font-weight:600;line-height:1.4;}
+    .headline .sub{font-size:13.5px;color:var(--muted);margin-top:8px;font-weight:400;line-height:1.5;}
+    code{background:var(--surface2);border-radius:4px;padding:1px 6px;font-size:12.5px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--ink);}
 
-    /* numbered "how it works" steps */
-    .steps{display:grid;grid-template-columns:1fr 1fr;gap:26px 40px;}
-    .step{display:flex;gap:18px;}
-    .step .idx{font-size:13px;font-weight:800;color:var(--accent);letter-spacing:.06em;padding-top:3px;min-width:26px;}
-    .step h3{font-size:15.5px;color:var(--ink);margin:0 0 5px;font-weight:700;}
-    .step p{margin:0;font-size:14px;color:var(--body);}
-    .step code{background:var(--surface2);border-radius:4px;padding:1px 5px;font-size:12.5px;
-      font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--ink);}
+    .steps{display:grid;grid-template-columns:1fr 1fr;gap:30px 44px;}
+    .step{display:flex;gap:16px;}
+    .step .idx{font-size:13px;font-weight:800;color:var(--accent);letter-spacing:.04em;min-width:24px;padding-top:2px;}
+    .step h3{font-size:15.5px;color:var(--ink);margin:0 0 6px;font-weight:700;}
+    .step p{margin:0;font-size:14px;color:var(--body);line-height:1.55;}
 
-    /* metric cards */
     .cards{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;}
-    .card{border:1px solid var(--border);border-radius:12px;padding:16px 18px;background:#fff;}
-    .card .n{font-size:26px;font-weight:700;color:var(--ink);letter-spacing:-.01em;}
-    .card .n.g{color:var(--green);} .card .n.p{color:var(--purple);} .card .n.r{color:var(--red);}
-    .card .l{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-top:3px;}
+    .card{border:1px solid var(--border);border-radius:12px;padding:16px 18px;}
+    .card .n{font-size:27px;font-weight:800;color:var(--ink);letter-spacing:-.02em;}
+    .card .n.g{color:var(--green);} .card .n.p{color:var(--purple);}
+    .card .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:4px;}
 
-    .how{font-size:13px;color:var(--muted);background:var(--surface);border:1px solid var(--border);
-      border-radius:10px;padding:12px 16px;margin-bottom:16px;}
-    .how b{color:var(--ink);}
+    /* per-cluster remediation cards with decision trace */
+    .rem{border:1px solid var(--border);border-radius:14px;padding:22px 24px;margin-bottom:16px;background:#fff;}
+    .rem.dis{border-color:#f3c9c9;background:#fefafa;}
+    .rem-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;}
+    .rem-title{font-size:16px;font-weight:700;color:var(--ink);}
+    .rem-head .badges>*{margin-left:6px;}
+    .rem-links{font-size:13px;white-space:nowrap;}
+    .meta{margin-top:14px;display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:13.5px;}
+    .meta .lbl{color:var(--faint);font-weight:600;text-transform:uppercase;font-size:10.5px;letter-spacing:.05em;padding-top:2px;}
+    .meta .val{color:var(--body);}
+    .meta .val .tn{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;color:var(--ink);}
+    .flag{margin-top:14px;font-size:12.5px;font-weight:700;color:var(--red);background:#fdeaea;border-radius:8px;padding:8px 12px;display:inline-block;}
 
-    table{width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--border);
-      border-radius:12px;overflow:hidden;background:#fff;}
-    th,td{text-align:left;padding:13px 16px;border-bottom:1px solid var(--border);font-size:13.5px;vertical-align:top;}
-    th{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);background:var(--surface);}
-    tbody tr:last-child td{border-bottom:none;}
-    td.vs,th.vs{border-left:1px solid var(--border);}
-    tr.disagree{background:#fdf2f2;}
-    tr.disagree td:first-child{box-shadow:inset 3px 0 0 var(--red);}
-    .cluster{font-weight:600;color:var(--ink);}
-    .prim{color:var(--faint);font-size:10.5px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;margin-top:5px;}
-    .caught{display:inline-block;margin-top:6px;font-size:10.5px;font-weight:800;color:var(--red);letter-spacing:.04em;}
+    .trace{margin-top:18px;border-top:1px solid var(--border);padding-top:16px;}
+    .trace-lbl{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);margin-bottom:12px;}
+    .t{position:relative;padding:0 0 12px 22px;border-left:2px solid var(--border);margin-left:5px;}
+    .t:last-child{border-left-color:transparent;padding-bottom:0;}
+    .t .dot{position:absolute;left:-6px;top:3px;width:10px;height:10px;border-radius:50%;background:var(--faint);border:2px solid #fff;}
+    .t.b .dot{background:var(--accent);} .t.g .dot{background:var(--green);}
+    .t.r .dot{background:var(--red);} .t.a .dot{background:var(--amber);} .t.p .dot{background:var(--purple);}
+    .t .tk{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);}
+    .t.b .tk{color:var(--accent);} .t.g .tk{color:var(--green);} .t.r .tk{color:var(--red);} .t.a .tk{color:var(--amber);} .t.p .tk{color:var(--purple);}
+    .t .tm{font-size:13.5px;color:var(--body);display:block;margin-top:1px;}
 
     .badge{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap;}
     .b-green{background:#e7f6ec;color:var(--green);} .b-red{background:#fdeaea;color:var(--red);}
     .b-amber{background:#fbf0df;color:var(--amber);} .b-blue{background:#e8f0fe;color:var(--accent);}
     .b-purple{background:#f1eafe;color:var(--purple);} .b-grey{background:#eef0f3;color:var(--muted);}
-    a{color:var(--accent);text-decoration:none;} a:hover{text-decoration:underline;}
 
-    .legend{margin:16px 2px 0;color:var(--muted);font-size:12.5px;}
-    .legend .item{margin-right:18px;white-space:nowrap;display:inline-block;}
-    .timeline{border:1px solid var(--border);border-radius:12px;padding:10px 16px;max-height:200px;overflow:auto;background:#fff;}
-    .ev{font:12px/1.85 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--muted);}
-    .ev .k{color:var(--ink);font-weight:600;} .ev .k.alert{color:var(--red);}
-    .foot{color:var(--faint);font-size:12.5px;margin-top:20px;}
+    .foot{color:var(--faint);font-size:12.5px;margin-top:24px;}
   </style>
 </head>
 <body>
 <div class="wrap">
 
-  {%- macro vbadge(v) -%}
-    {%- if v=='stabilized' -%}<span class="badge b-green">stabilized</span>
-    {%- elif v=='cheat_detected' -%}<span class="badge b-red">cheat detected</span>
-    {%- elif v=='still_flaky' -%}<span class="badge b-amber">still flaky</span>
-    {%- elif v=='regressed' -%}<span class="badge b-amber">regressed</span>
-    {%- elif v=='needs_human_review' -%}<span class="badge b-purple">needs human</span>
-    {%- elif v=='inconclusive' -%}<span class="badge b-grey">inconclusive</span>
-    {%- else -%}<span class="badge b-grey">not yet run</span>{%- endif -%}
-  {%- endmacro -%}
   {%- macro sbadge(s) -%}
     {%- if s=='stabilized' -%}<span class="badge b-green">stabilized</span>
     {%- elif s=='escalated' -%}<span class="badge b-purple">escalated</span>
@@ -100,10 +92,16 @@
     {%- else -%}<span class="badge b-blue">running</span>{%- endif -%}
   {%- endmacro -%}
   {%- macro cibadge(c) -%}
-    {%- if c=='green' -%}<span class="badge b-green">passing</span>
-    {%- elif c=='red' -%}<span class="badge b-red">failing</span>
-    {%- elif c=='pending' -%}<span class="badge b-blue">pending</span>
-    {%- else -%}<span class="badge b-grey">none</span>{%- endif -%}
+    {%- if c=='green' -%}<span class="badge b-green">CI passing</span>
+    {%- elif c=='red' -%}<span class="badge b-red">CI failing</span>
+    {%- elif c=='pending' -%}<span class="badge b-blue">CI pending</span>
+    {%- else -%}<span class="badge b-grey">CI: none</span>{%- endif -%}
+  {%- endmacro -%}
+  {%- macro tlabel(k) -%}
+    {%- if k=='session_created' -%}dispatch{%- elif k=='primitives_attached' -%}context
+    {%- elif k=='validation_started' -%}verify{%- elif k=='ci_observed' -%}ci check
+    {%- elif k=='cheat_caught' -%}cheat caught{%- elif k=='feedback_sent' -%}feedback
+    {%- elif k=='scan_started' -%}queued{%- else -%}{{ k|replace('_',' ') }}{%- endif -%}
   {%- endmacro -%}
 
   <header>
@@ -120,9 +118,9 @@
       <div class="num">{{ metrics.ci_green_lies_caught }}</div>
       <div>
         <div class="lead">times CI reported <b>green</b>, but the validator disagreed &mdash; caught before merge.</div>
-        <div class="sub">Including {{ metrics.cheats_caught }} cheat-fix(es) blocked
-          (a test hidden with <code>@pytest.mark.flaky</code> / <code>skip</code> / <code>reruns</code> instead of fixed).
-          A CI-only check is structurally blind to these &mdash; CI goes green by construction.</div>
+        <div class="sub">Including {{ metrics.cheats_caught }} cheat-fix(es) blocked &mdash; a test hidden with
+          <code>@pytest.mark.flaky</code> / <code>skip</code> / <code>reruns</code> instead of fixed.
+          A CI-only check is structurally blind to these: CI goes green by construction.</div>
       </div>
     </div>
   </section>
@@ -133,38 +131,31 @@
     <div class="steps">
       <div class="step"><div class="idx">01</div><div>
         <h3>Detect by re-ordering</h3>
-        <p>A <b>flaky</b> test passes in the suite's default order but fails under a different order,
-          because an <b>earlier test leaks shared state</b> (a global, an app/request context, a DB row).
-          We run the full suite under many random seed orderings (<code>pytest-randomly</code>); a test that
-          passes sometimes and fails sometimes is flaky. Here: <b>9 flaky tests</b>, grouped into
-          <b>{{ metrics.total }} root-cause clusters</b>.</p>
+        <p>A flaky test passes in the suite's default order but fails under a different order, because an
+          <b>earlier test leaks shared state</b>. We run the suite under many random seed orderings; a test that
+          passes sometimes and fails sometimes is flaky. Here: 9 flaky tests in {{ metrics.total }} root-cause clusters.</p>
       </div></div>
       <div class="step"><div class="idx">02</div><div>
-        <h3>Dispatch Devin (with context)</h3>
-        <p>Each cluster is a GitHub issue; labeling it dispatches a Devin session carrying a
-          <b>Playbook</b> (the fix procedure), a <b>Knowledge</b> base of past incidents, and a
-          <b>Machine Snapshot</b> of the env. Devin reproduces the flake under the bad seeds,
-          <b>bisects to the leaking predecessor</b>, and fixes the state isolation at the root.</p>
+        <h3>Dispatch Devin with context</h3>
+        <p>Each cluster is a GitHub issue; labeling it dispatches a Devin session with a <b>Playbook</b>,
+          a <b>Knowledge</b> base, and a <b>Machine Snapshot</b> of the env. Devin reproduces the flake,
+          <b>bisects to the leaking predecessor</b>, and fixes the isolation at the root.</p>
       </div></div>
       <div class="step"><div class="idx">03</div><div>
-        <h3>Verify independently &mdash; never trust "green"</h3>
-        <p>From a <b>fresh clone of the PR branch</b> (not Devin's word, not one CI run) we re-run the
-          targets across the <b>known-bad seeds</b> (the orderings that broke them) plus fresh seeds,
-          <b>scan the diff</b> for skip/@flaky/retry/sleep, and confirm <b>only test code changed</b>.
-          So far: <b>{{ metrics.total_seeds_run }} seed-runs</b> executed.</p>
+        <h3>Verify independently</h3>
+        <p>From a <b>fresh clone of the PR branch</b> we re-run the targets across the known-bad seeds plus
+          fresh seeds, <b>scan the diff</b> for skip/@flaky/retry/sleep, and confirm only test code changed.
+          {{ metrics.total_seeds_run }} seed-runs executed so far.</p>
       </div></div>
       <div class="step"><div class="idx">04</div><div>
         <h3>Route on the verdict</h3>
-        <p><b>stabilized</b> &rarr; ready for human review. <b>cheat / still-flaky</b> &rarr; send the
-          exact evidence back to Devin and retry (bounded). <b>product bug</b> &rarr; escalate to a
-          human &mdash; never silently mask it by editing the test.</p>
+        <p><b>stabilized</b> &rarr; ready for review. <b>cheat / still-flaky</b> &rarr; send the exact evidence
+          back to Devin and retry (bounded). <b>product bug</b> &rarr; escalate &mdash; never mask it.</p>
       </div></div>
     </div>
   </section>
 
   <section>
-    <div class="eyebrow">Live status</div>
-    <h2>Remediations</h2>
     <div class="cards">
       <div class="card"><div class="n g">{{ metrics.stabilized }}</div><div class="l">Verified stable</div></div>
       <div class="card"><div class="n p">{{ metrics.escalated }}</div><div class="l">Escalated to human</div></div>
@@ -172,59 +163,54 @@
       <div class="card"><div class="n">{{ (metrics.verified_rate*100)|round(0)|int }}%</div><div class="l">Verified rate</div></div>
       <div class="card"><div class="n">{{ metrics.eng_hours_saved }}</div><div class="l">Eng-hours saved</div></div>
     </div>
-
-    <div class="how" style="margin-top:18px"><b>How to read the table:</b> &nbsp;<b>GitHub CI</b> = the repo's own check (one run, default order).
-      &nbsp;<b>Validator</b> = our independent re-run across seed orderings + cheat scan.
-      &nbsp;A <span style="color:var(--red);font-weight:600">red row</span> = CI passed but the validator caught a problem.</div>
-
-    <table>
-      <thead><tr>
-        <th>Cluster</th><th>Tests</th><th>Devin</th>
-        <th>GitHub CI</th><th class="vs">Independent validator</th>
-        <th>Seeds</th><th>Tries</th><th>Output</th>
-      </tr></thead>
-      <tbody>
-      {% for r in remediations %}
-        {% set disagree = (r.ci_status=='green' and r.verdict not in ['stabilized','pending']) %}
-        <tr class="{{ 'disagree' if disagree else '' }}">
-          <td>
-            <div class="cluster">{{ r.cluster_id }}</div>
-            {% if r.primitives and r.primitives != '(none configured)' %}<div class="prim">{{ r.primitives }}</div>{% endif %}
-            {% if disagree %}<div class="caught">&#9650; CI MISSED THIS</div>{% endif %}
-          </td>
-          <td>{{ r.target_count }}</td>
-          <td>{{ sbadge(r.status) }}</td>
-          <td>{{ cibadge(r.ci_status) }}</td>
-          <td class="vs">{{ vbadge(r.verdict) }}</td>
-          <td>{{ r.seeds_run }}</td>
-          <td>{{ r.attempts }}</td>
-          <td>{% if r.pr_url %}<a href="{{ r.pr_url }}">PR</a>{% else %}&mdash;{% endif %}
-            {% if r.session_url %} &middot; <a href="{{ r.session_url }}">session</a>{% endif %}</td>
-        </tr>
-      {% else %}
-        <tr><td colspan="8" style="color:var(--muted)">No remediations yet &mdash; POST /trigger/scan or label an issue.</td></tr>
-      {% endfor %}
-      </tbody>
-    </table>
-
-    <div class="legend">
-      <span class="item">{{ vbadge('stabilized') }} verified stable across seeds</span>
-      <span class="item">{{ vbadge('cheat_detected') }} hid the flake &mdash; rejected</span>
-      <span class="item">{{ vbadge('still_flaky') }} not actually fixed</span>
-      <span class="item">{{ vbadge('needs_human_review') }} product bug &mdash; escalated</span>
-    </div>
   </section>
 
   <section>
-    <div class="eyebrow">Activity</div>
-    <div class="timeline">
-      {% for e in events %}
-        <div class="ev"><span class="k {{ 'alert' if e.kind in ['cheat_caught','escalated','verdict'] else '' }}">{{ e.kind }}</span>
-          {% if e.cluster_id %}<span style="color:var(--faint)">[{{ e.cluster_id }}]</span>{% endif %} {{ e.message }}</div>
-      {% endfor %}
-    </div>
+    <div class="eyebrow">Live</div>
+    <h2>What's being remediated &mdash; and how it's being decided</h2>
+    {% for row in rows %}
+      {% set r = row.r %}{% set c = row.cluster %}
+      {% set dis = (r.ci_status=='green' and r.verdict not in ['stabilized','pending']) %}
+      <div class="rem {{ 'dis' if dis else '' }}">
+        <div class="rem-head">
+          <div class="rem-title">{{ r.cluster_id }}</div>
+          <div class="badges">{{ cibadge(r.ci_status) }} {{ sbadge(r.status) }}
+            <span class="rem-links">{% if r.pr_url %}&middot; <a href="{{ r.pr_url }}">PR</a>{% endif %}
+              {% if r.session_url %}&middot; <a href="{{ r.session_url }}">session</a>{% endif %}</span>
+          </div>
+        </div>
+        <div class="meta">
+          <div class="lbl">Targets</div>
+          <div class="val">{{ r.target_count }} test(s) &mdash;
+            {% for t in c.target_test_ids %}<span class="tn">{{ t.split('::')[1] }}</span>{% if not loop.last %}, {% endif %}{% endfor %}
+            <br><span style="color:var(--faint)">fail only under seed orderings {{ c.known_bad_seeds|join(', ') }}</span></div>
+          <div class="lbl">Problem</div>
+          <div class="val">{{ c.root_cause }}</div>
+        </div>
+        {% if dis %}<div class="flag">&#9650; GitHub CI reported passing &mdash; the validator disagreed and caught it before merge.</div>{% endif %}
+
+        <div class="trace">
+          <div class="trace-lbl">Decision trace</div>
+          {% for e in row.trace %}
+            {%- set v = e.data.get('verdict') -%}
+            {%- set cls = 'b' -%}
+            {%- if e.kind=='cheat_caught' or v in ['cheat_detected','still_flaky','regressed'] -%}{% set cls='r' %}
+            {%- elif e.kind=='stabilized' or v=='stabilized' -%}{% set cls='g' %}
+            {%- elif e.kind=='escalated' or v=='needs_human_review' -%}{% set cls='p' %}
+            {%- elif e.kind=='feedback_sent' -%}{% set cls='a' %}
+            {%- elif e.kind in ['primitives_attached','scan_started'] -%}{% set cls='' %}{%- endif -%}
+            <div class="t {{ cls }}"><span class="dot"></span>
+              <span class="tk">{{ tlabel(e.kind) }}</span>
+              <span class="tm">{{ e.message }}</span></div>
+          {% endfor %}
+        </div>
+      </div>
+    {% else %}
+      <p style="color:var(--muted)">No remediations yet &mdash; POST /trigger/scan or label an issue <b>{{ metrics.trigger if metrics.trigger else 'devin-fix' }}</b>.</p>
+    {% endfor %}
+
     <div class="foot">{{ metrics.total }} clusters &middot; {{ metrics.total_seeds_run }} seed-runs executed
-      &middot; avg {{ metrics.avg_duration_sec }}s &middot; updated {{ now }}</div>
+      {%- if metrics.avg_duration_sec >= 1 %} &middot; avg {{ metrics.avg_duration_sec }}s/cluster{% endif %} &middot; {{ now }}</div>
   </section>
 
 </div>

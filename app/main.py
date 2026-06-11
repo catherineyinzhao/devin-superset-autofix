@@ -30,7 +30,7 @@ from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 
-from app import db, events
+from app import db, events, views
 from app.clusters import CLUSTERS, cluster_for_issue_title
 from app.config import config
 from app.github_client import github
@@ -133,9 +133,8 @@ async def dashboard(request: Request):
     return TEMPLATES.TemplateResponse("dashboard.html", {
         "request": request,
         "metrics": db.metrics(),
-        "remediations": db.list_remediations(),
-        "events": db.list_events(limit=40),
-        "now": db.now_iso(),
+        "rows": views.remediation_rows(),
+        "now": "updated " + db.now_iso(),
     })
 
 

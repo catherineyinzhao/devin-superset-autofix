@@ -18,7 +18,7 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
 
-from app import db
+from app import db, views
 from app.clusters import CLUSTERS
 from app.config import config
 from app.orchestrator import dispatch, poll_once
@@ -38,8 +38,8 @@ def main() -> None:
 
     env = Environment(loader=FileSystemLoader(str(ROOT / "app" / "templates")))
     html = env.get_template("dashboard.html").render(
-        request=None, metrics=db.metrics(), remediations=db.list_remediations(),
-        events=db.list_events(limit=50), now="captured from a live mock run",
+        request=None, metrics=db.metrics(), rows=views.remediation_rows(),
+        now="snapshot of a live mock run",
     )
     # Static file: drop the self-refresh.
     html = html.replace('<meta http-equiv="refresh" content="5">',
