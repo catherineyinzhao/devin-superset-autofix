@@ -66,6 +66,17 @@
     .prim .pwhy{font-size:13px;color:var(--muted);margin-top:8px;line-height:1.5;}
     .prim .pwhy b{color:var(--ink);font-weight:600;}
 
+    /* engineering memory panel */
+    .memwrap{margin-top:22px;border:1px solid var(--border);border-radius:2px;background:var(--surface);padding:16px 18px;}
+    .memrow{padding:11px 0;border-top:1px solid var(--border);}
+    .memrow:first-of-type{border-top:none;}
+    .memk{font-family:var(--mono);font-size:12.5px;font-weight:600;color:var(--ink);}
+    .memfc{font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-left:8px;}
+    .memfix{font-size:13.5px;color:var(--body);margin-top:5px;}
+    .memfix b{color:var(--ink);font-weight:600;}
+    .memv{font-family:var(--mono);font-size:11px;color:var(--green);margin-top:4px;}
+    .memempty{font-size:13px;color:var(--muted);}
+
     .steps{display:grid;grid-template-columns:1fr 1fr;gap:28px 44px;}
     .step{display:flex;gap:15px;}
     .step .idx{font-family:var(--mono);font-size:13px;color:var(--accent);min-width:20px;padding-top:2px;}
@@ -294,6 +305,35 @@ flowchart TD
         <div class="pwhat">Session creation is idempotent on a <code>{cluster}:{repo}</code> key; spend is capped per
           session with <code>max_acu_limit</code>.</div>
         <div class="pwhy"><b>Why:</b> a webhook retry or re-scan never double-fires a session or wastes ACU.</div></div>
+    </div>
+
+    <div class="memwrap">
+      <div class="blk-lbl">Engineering memory &mdash; patterns learned from verified fixes (injected into future sessions as Knowledge)</div>
+      
+      <div class="memrow">
+        <span class="memk">bigquery-flask-g-asyncmock</span><span class="memfc">[order-dependence/shared-state]</span>
+        <div class="memfix"><b>fix pattern:</b> reset the flask.g/app-context between tests (fixture teardown) so the patch is a MagicMock in any order</div>
+        <div class="memv">verified &middot; Re-ran tests/unit_tests/ 10x (4 known-bad + 5 fresh seeds): 0/5 target failures, 0 regressions, no skip/retry/flaky markers added. STABILIZED.</div>
+      </div>
+      
+      <div class="memrow">
+        <span class="memk">dataset-import-allowlist</span><span class="memfc">[order-dependence/shared-state]</span>
+        <div class="memfix"><b>fix pattern:</b> wrap the config mutation in try/finally to restore the original allow-list</div>
+        <div class="memv">verified &middot; Re-ran tests/unit_tests/ 9x (3 known-bad + 5 fresh seeds): 0/1 target failures, 0 regressions, no skip/retry/flaky markers added. STABILIZED.</div>
+      </div>
+      
+      <div class="memrow">
+        <span class="memk">catalog-perms-metadata-leak</span><span class="memfc">[order-dependence/shared-state]</span>
+        <div class="memfix"><b>fix pattern:</b> roll back / isolate the metadata session so leaked rows do not persist across tests</div>
+        <div class="memv">verified &middot; Re-ran tests/unit_tests/ 10x (4 known-bad + 5 fresh seeds): 0/1 target failures, 0 regressions, no skip/retry/flaky markers added. STABILIZED.</div>
+      </div>
+      
+      <div class="memrow">
+        <span class="memk">csrf-exempt-blueprints</span><span class="memfc">[order-dependence/shared-state]</span>
+        <div class="memfix"><b>fix pattern:</b> isolate/reset the csrf exempt-blueprints set per test so registrations don't leak</div>
+        <div class="memv">verified &middot; Re-ran tests/unit_tests/ 8x (2 known-bad + 5 fresh seeds): 0/1 target failures, 0 regressions, no skip/retry/flaky markers added. STABILIZED.</div>
+      </div>
+      
     </div>
   </section>
 

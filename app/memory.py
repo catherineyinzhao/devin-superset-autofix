@@ -58,6 +58,22 @@ def record(cluster_id: str, flake_class: str, root_cause: str, leaker: str,
     return True
 
 
+def entries() -> List[dict]:
+    """Structured view of recorded incidents (for the dashboard panel)."""
+    mp = _path()
+    if not mp.exists():
+        return []
+    out = []
+    for cid, fc, body in _entries(mp.read_text(encoding="utf-8")):
+        def g(label):
+            m = re.search(label + r":\s*(.+)", body)
+            return m.group(1).strip() if m else ""
+        out.append({"cluster_id": cid, "flake_class": fc, "root_cause": g("Root cause"),
+                    "leaker": g("Leaking predecessor"), "fix": g("Fix pattern"),
+                    "verified": g("Verified")})
+    return out
+
+
 def recall(flake_class: Optional[str] = None, exclude_cluster: Optional[str] = None,
            limit: int = 5) -> str:
     """One-line summaries of prior verified fixes of the same class, for prompt context."""

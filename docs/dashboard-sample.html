@@ -66,6 +66,17 @@
     .prim .pwhy{font-size:13px;color:var(--muted);margin-top:8px;line-height:1.5;}
     .prim .pwhy b{color:var(--ink);font-weight:600;}
 
+    /* engineering memory panel */
+    .memwrap{margin-top:22px;border:1px solid var(--border);border-radius:2px;background:var(--surface);padding:16px 18px;}
+    .memrow{padding:11px 0;border-top:1px solid var(--border);}
+    .memrow:first-of-type{border-top:none;}
+    .memk{font-family:var(--mono);font-size:12.5px;font-weight:600;color:var(--ink);}
+    .memfc{font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-left:8px;}
+    .memfix{font-size:13.5px;color:var(--body);margin-top:5px;}
+    .memfix b{color:var(--ink);font-weight:600;}
+    .memv{font-family:var(--mono);font-size:11px;color:var(--green);margin-top:4px;}
+    .memempty{font-size:13px;color:var(--muted);}
+
     .steps{display:grid;grid-template-columns:1fr 1fr;gap:28px 44px;}
     .step{display:flex;gap:15px;}
     .step .idx{font-family:var(--mono);font-size:13px;color:var(--accent);min-width:20px;padding-top:2px;}
@@ -326,6 +337,17 @@ flowchart TD
         <div class="pwhat">Session creation is idempotent on a <code>{cluster}:{repo}</code> key; spend is capped per
           session with <code>max_acu_limit</code>.</div>
         <div class="pwhy"><b>Why:</b> a webhook retry or re-scan never double-fires a session or wastes ACU.</div></div>
+    </div>
+
+    <div class="memwrap">
+      <div class="blk-lbl">Engineering memory &mdash; patterns learned from verified fixes (injected into future sessions as Knowledge)</div>
+      
+      <div class="memrow">
+        <span class="memk">dataset-import-allowlist</span><span class="memfc">[order-dependence/shared-state]</span>
+        <div class="memfix"><b>fix pattern:</b> wrap the config mutation in try/finally to restore the original allow-list</div>
+        <div class="memv">verified &middot; local seed-sweep: reproduced pre-fix under 202, 303, 404; 0/9 on the PR branch</div>
+      </div>
+      
     </div>
   </section>
 
@@ -716,6 +738,8 @@ flowchart TD
           <div class="trace">
           <div class="t b"><span class="dot"></span><span class="tk">dispatch</span><span class="tm">fired session for dataset-import-allowlist</span></div>
           <div class="t b"><span class="dot"></span><span class="tk">ci check</span><span class="tm">live: GitHub CI = none</span></div>
+          <div class="t g"><span class="dot"></span><span class="tk">verdict</span><span class="tm">stabilized (real local seed-sweep, 0 target failures)</span></div>
+          <div class="t g"><span class="dot"></span><span class="tk">stabilized</span><span class="tm">PR ready for human review (verified locally)</span></div>
           <div class="t g"><span class="dot"></span><span class="tk">verdict</span><span class="tm">stabilized (real local seed-sweep, 0 target failures)</span></div>
           <div class="t g"><span class="dot"></span><span class="tk">stabilized</span><span class="tm">PR ready for human review (verified locally)</span></div>
           

@@ -16,7 +16,7 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
 
-from app import db, live, views
+from app import db, live, memory, views
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -27,7 +27,7 @@ def main() -> None:
     env = Environment(loader=FileSystemLoader(str(ROOT / "app" / "templates")))
     html = env.get_template("dashboard.html").render(
         request=None, metrics=db.metrics(), rows=views.remediation_rows(),
-        compare=views.approaches_comparison(), live=live.strip(),
+        compare=views.approaches_comparison(), live=live.strip(), memory=memory.entries(),
         now="live pull from the Devin API",
     )
     html = html.replace('<meta http-equiv="refresh" content="5">',
