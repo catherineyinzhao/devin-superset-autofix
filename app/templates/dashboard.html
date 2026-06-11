@@ -37,6 +37,7 @@
     .b-grey{background:rgba(139,148,158,.18);color:var(--muted);}
     a { color:#58a6ff; text-decoration:none; } a:hover { text-decoration:underline; }
     .lie-note { color:#f85149; font-size:11px; }
+    .prim { color:var(--muted); font-size:10px; font-family:ui-monospace,Menlo,monospace; margin-top:3px; }
     .timeline { margin-top:24px; background:var(--panel); border:1px solid var(--border);
                 border-radius:8px; padding:8px 14px; max-height:220px; overflow:auto; }
     .ev { font:12px/1.7 ui-monospace,SFMono-Regular,Menlo,monospace; color:var(--muted); }
@@ -88,7 +89,10 @@
     {% for r in remediations %}
       {% set lie = (r.ci_status=='green' and r.verdict not in ['stabilized','pending']) %}
       <tr class="{{ 'lie' if lie else '' }}">
-        <td><b>{{ r.cluster_id }}</b></td>
+        <td><b>{{ r.cluster_id }}</b>
+          {% if r.primitives and r.primitives != '(none configured)' %}
+          <div class="prim">{{ r.primitives }}</div>{% endif %}
+        </td>
         <td>{{ r.target_count }}</td>
         <td>{{ sbadge(r.status) }}</td>
         <td>

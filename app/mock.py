@@ -42,9 +42,10 @@ def intent_for(cluster: Cluster, attempt: int) -> str:
 # --------------------------------------------------------------------------- #
 # Session lifecycle
 # --------------------------------------------------------------------------- #
-def register_session(session_id: str, cluster_id: str, attempt: int) -> None:
+def register_session(session_id: str, cluster_id: str, attempt: int, fast: bool = False) -> None:
     with _lock:
-        _sessions[session_id] = {"cluster_id": cluster_id, "attempt": attempt, "polls": 0}
+        _sessions[session_id] = {"cluster_id": cluster_id, "attempt": attempt,
+                                 "polls": 0, "fast": fast}
 
 
 def advance_session(session_id: str) -> Dict[str, Any]:
@@ -55,7 +56,9 @@ def advance_session(session_id: str) -> Dict[str, Any]:
         if st is None:
             return {"status": "running", "pr_url": None, "session_url": _session_url(session_id)}
         st["polls"] += 1
-        if st["polls"] <= _RUNNING_POLLS:
+        # A snapshot-backed ("fast") session skips env setup -> finishes a poll sooner.
+        running_polls = 0 if st.get("fast") else _RUNNING_POLLS
+        if st["polls"] <= running_polls:
             return {"status": "running", "pr_url": None, "session_url": _session_url(session_id)}
         cluster = get_cluster(st["cluster_id"])
         pr_number = _open_pr(st["cluster_id"], st["attempt"])

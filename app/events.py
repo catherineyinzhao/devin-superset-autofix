@@ -24,6 +24,7 @@ class Event:
     SCAN_STARTED = "scan_started"
     ISSUE_CREATED = "issue_created"
     SESSION_CREATED = "session_created"
+    PRIMITIVES_ATTACHED = "primitives_attached"
     # devin lifecycle
     SESSION_RUNNING = "session_running"
     SESSION_BLOCKED = "session_blocked"

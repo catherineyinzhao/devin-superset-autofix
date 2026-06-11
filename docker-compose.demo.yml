@@ -11,3 +11,8 @@ services:
       POLL_INTERVAL_SECONDS: "3"
       DEVIN_MOCK_WORK_SECONDS: "3"
       DB_PATH: /data/autofix.db
+      # Demo placeholder Devin primitives (simulated in mock; the dashboard shows
+      # them per session). In real mode, set these to actual ids you created.
+      DEVIN_PLAYBOOK_STATE_ISOLATION: pb-flaky-state-isolation
+      DEVIN_KNOWLEDGE_IDS: kb-superset-flaky-incidents
+      DEVIN_SNAPSHOT_ID: snap-superset-dev

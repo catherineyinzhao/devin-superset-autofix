@@ -40,6 +40,10 @@ def _conn() -> Iterator[sqlite3.Connection]:
 def init_db() -> None:
     with _conn() as conn:
         conn.executescript(CREATE_TABLES_SQL)
+        # Lightweight migration for DBs created before the `primitives` column.
+        cols = {r[1] for r in conn.execute("PRAGMA table_info(remediations)").fetchall()}
+        if "primitives" not in cols:
+            conn.execute("ALTER TABLE remediations ADD COLUMN primitives TEXT")
 
 
 # --------------------------------------------------------------------------- #
@@ -56,7 +60,7 @@ def insert_remediation(rem: Remediation) -> Remediation:
         "cluster_id", "cluster_title", "issue_number", "issue_url", "session_id",
         "session_url", "branch", "pr_url", "pr_number", "ci_status", "status",
         "verdict", "verdict_detail", "attempts", "target_count", "known_bad_seeds",
-        "seeds_run", "eng_hours_saved", "summary", "idempotency_key",
+        "seeds_run", "eng_hours_saved", "primitives", "summary", "idempotency_key",
         "created_at", "updated_at", "finished_at", "duration_sec",
     ]
     placeholders = ", ".join(f":{c}" for c in cols)

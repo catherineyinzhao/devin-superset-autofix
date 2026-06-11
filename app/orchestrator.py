@@ -20,8 +20,9 @@ from app.clusters import Cluster, get_cluster
 from app.config import config
 from app.devin_client import devin
 from app.github_client import github, pr_number_from_url
+from app.devin_primitives import primitives_for, summary as primitives_summary
 from app.models import Remediation, Status, Verdict
-from app.prompts import build_followup, build_prompt
+from app.prompts import FIX_OUTPUT_SCHEMA, build_followup, build_prompt
 from app.validator import validate
 
 MAX_CORRECTION_ROUNDS = int(os.getenv("MAX_CORRECTION_ROUNDS", "3"))
@@ -63,18 +64,25 @@ def dispatch(cluster: Cluster, issue_number: Optional[int] = None,
 
 
 def _fire(rem: Remediation) -> None:
-    """Actually create the Devin session for an already-registered remediation."""
+    """Actually create the Devin session for an already-registered remediation,
+    attaching the configured Devin primitives (Playbook / Knowledge / Snapshot)."""
     cluster = get_cluster(rem.cluster_id)
     prompt = build_prompt(cluster, f"https://github.com/{config.github_repo}", rem.issue_number)
+    prim = primitives_for(cluster)
     created = devin.create_session(
         prompt, title=f"[flaky-fix] {cluster.id}", tags=cluster.labels,
+        playbook_id=prim["playbook_id"], snapshot_id=prim["snapshot_id"],
+        knowledge_ids=prim["knowledge_ids"], structured_output_schema=FIX_OUTPUT_SCHEMA,
         mock_cluster_id=cluster.id,
     )
+    prim_str = primitives_summary(prim)
     db.update_remediation(rem.id, session_id=created["session_id"],
                           session_url=created["session_url"], status=Status.RUNNING,
-                          attempts=max(rem.attempts, 1))
+                          attempts=max(rem.attempts, 1), primitives=prim_str)
     events.log(events.Event.SESSION_CREATED, f"dispatched Devin for {cluster.id}",
                remediation_id=rem.id, cluster_id=cluster.id, session_url=created["session_url"])
+    events.log(events.Event.PRIMITIVES_ATTACHED, prim_str,
+               remediation_id=rem.id, cluster_id=cluster.id)
     if rem.issue_number:
         github.add_comment(rem.issue_number, f"Devin remediation started: {created['session_url']}")
         github.add_labels(rem.issue_number, ["status:devin-running"])

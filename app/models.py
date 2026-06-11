@@ -65,6 +65,7 @@ CREATE TABLE IF NOT EXISTS remediations (
     known_bad_seeds TEXT,                       -- JSON list[int]
     seeds_run       INTEGER DEFAULT 0,          -- total orderings the validator executed
     eng_hours_saved REAL    DEFAULT 0,
+    primitives      TEXT,                       -- Devin primitives attached (playbook/snapshot/knowledge)
     summary         TEXT,
     idempotency_key TEXT    UNIQUE,
     created_at      TEXT,
@@ -109,6 +110,7 @@ class Remediation:
     known_bad_seeds: List[int] = field(default_factory=list)
     seeds_run: int = 0
     eng_hours_saved: float = 0.0
+    primitives: Optional[str] = None
     summary: Optional[str] = None
     idempotency_key: Optional[str] = None
     created_at: Optional[str] = None

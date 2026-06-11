@@ -16,8 +16,9 @@ from app import db, events
 from app.clusters import CLUSTERS, Cluster, get_cluster
 from app.config import config
 from app.devin_client import devin
+from app.devin_primitives import primitives_for, summary as primitives_summary
 from app.models import Remediation, Status
-from app.prompts import build_prompt
+from app.prompts import FIX_OUTPUT_SCHEMA, build_prompt
 
 
 def fire_one(cluster: Cluster) -> Remediation:
@@ -30,8 +31,11 @@ def fire_one(cluster: Cluster) -> Remediation:
 
     prompt = build_prompt(cluster, repo_url=f"https://github.com/{config.github_repo}",
                           issue_number=existing.issue_number if existing else None)
+    prim = primitives_for(cluster)
     created = devin.create_session(
         prompt, title=f"[flaky-fix] {cluster.id}", tags=cluster.labels,
+        playbook_id=prim["playbook_id"], snapshot_id=prim["snapshot_id"],
+        knowledge_ids=prim["knowledge_ids"], structured_output_schema=FIX_OUTPUT_SCHEMA,
         mock_cluster_id=cluster.id,
     )
     sid, surl = created["session_id"], created["session_url"]
@@ -41,6 +45,7 @@ def fire_one(cluster: Cluster) -> Remediation:
         attempts=1, target_count=cluster.target_count,
         known_bad_seeds=cluster.known_bad_seeds,
         eng_hours_saved=cluster.human_baseline_hours,
+        primitives=primitives_summary(prim),
         idempotency_key=key,
     ))
     events.log(events.Event.SESSION_CREATED, f"fired session for {cluster.id}",

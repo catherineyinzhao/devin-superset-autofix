@@ -21,6 +21,16 @@ class Config:
     devin_mock: bool = _bool("DEVIN_MOCK", True)
     devin_mock_work_seconds: int = int(os.getenv("DEVIN_MOCK_WORK_SECONDS", "20"))
 
+    # ---- Devin platform primitives (optional; absent -> generic behavior) ----
+    # Machine Snapshot of a pre-built Superset dev env: removes the repeated
+    # `pip install -e .[development]` setup that dominates per-session ACU.
+    devin_snapshot_id: str = os.getenv("DEVIN_SNAPSHOT_ID", "")
+    # Knowledge bases (comma-separated ids) injected into every session, e.g. the
+    # flaky-incident history -- the Devin-native version of an engineering memory.
+    devin_knowledge_ids: str = os.getenv("DEVIN_KNOWLEDGE_IDS", "")
+    # Fallback Playbook id when no per-flake-class id is configured.
+    devin_playbook_default: str = os.getenv("DEVIN_PLAYBOOK_DEFAULT", "")
+
     github_repo: str = os.getenv("GITHUB_REPO", "your-org/superset")
     github_token: str = os.getenv("GITHUB_TOKEN", "")
     github_api_base: str = os.getenv("GITHUB_API_BASE", "https://api.github.com").rstrip("/")

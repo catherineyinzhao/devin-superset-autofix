@@ -18,6 +18,28 @@ from typing import Optional
 
 from app.clusters import Cluster
 
+# Passed natively to the Sessions API as `structured_output_schema` so Devin's
+# output is validated at the source, not parsed best-effort from prose.
+FIX_OUTPUT_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "cluster_id": {"type": "string"},
+        "reproduced": {"type": "boolean"},
+        "root_cause_confirmed": {"type": "boolean"},
+        "root_cause": {"type": "string"},
+        "leaking_tests": {"type": "array", "items": {"type": "string"}},
+        "fix_summary": {"type": "string"},
+        "files_changed": {"type": "array", "items": {"type": "string"}},
+        "fix_is_test_side_only": {"type": "boolean"},
+        "touched_product_code": {"type": "boolean"},
+        "escalate": {"type": "boolean"},
+        "branch": {"type": "string"},
+        "pr_url": {"type": "string"},
+    },
+    "required": ["cluster_id", "reproduced", "fix_is_test_side_only",
+                 "touched_product_code", "escalate"],
+}
+
 FORBIDDEN = (
     "@pytest.mark.flaky, flaky(...), @pytest.mark.skip, @pytest.mark.skipif, "
     "@pytest.mark.xfail, pytest-rerunfailures / --reruns / reruns=, @retry, "

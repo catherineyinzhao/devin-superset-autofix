@@ -95,15 +95,23 @@ class DevinClient:
         title: Optional[str] = None,
         tags: Optional[list] = None,
         playbook_id: Optional[str] = None,
+        snapshot_id: Optional[str] = None,
+        knowledge_ids: Optional[list] = None,
+        structured_output_schema: Optional[dict] = None,
+        session_secrets: Optional[list] = None,
         mock_cluster_id: Optional[str] = None,
         mock_attempt: int = 0,
     ) -> Dict[str, Any]:
-        """Returns {session_id, session_url}. ``mock_*`` args are demo-only and
-        ignored by the real API path."""
+        """Returns {session_id, session_url, is_new_session}. ``mock_*`` args are
+        demo-only and ignored by the real API path."""
         if self.mock:
             session_id = f"devin-mock-{mock_cluster_id}-a{mock_attempt}"
-            mock.register_session(session_id, mock_cluster_id or "unknown", mock_attempt)
-            return {"session_id": session_id, "session_url": f"https://app.devin.ai/sessions/{session_id}"}
+            # A Machine Snapshot means the env is pre-built: setup is skipped, so
+            # the mock session reaches a PR faster (mirrors the real ACU saving).
+            mock.register_session(session_id, mock_cluster_id or "unknown", mock_attempt,
+                                  fast=bool(snapshot_id))
+            return {"session_id": session_id, "is_new_session": True,
+                    "session_url": f"https://app.devin.ai/sessions/{session_id}"}
 
         body: Dict[str, Any] = {"prompt": prompt, "idempotent": True}
         if title:
@@ -112,6 +120,14 @@ class DevinClient:
             body["tags"] = tags
         if playbook_id:
             body["playbook_id"] = playbook_id
+        if snapshot_id:
+            body["snapshot_id"] = snapshot_id
+        if knowledge_ids is not None:
+            body["knowledge_ids"] = knowledge_ids
+        if structured_output_schema:
+            body["structured_output_schema"] = structured_output_schema
+        if session_secrets:  # e.g. a scoped GitHub token so Devin can push natively
+            body["session_secrets"] = session_secrets
         if config.devin_max_acu_limit:
             body["max_acu_limit"] = config.devin_max_acu_limit
         resp = requests.post(f"{self.base}/sessions", json=body, headers=self._headers, timeout=60)
@@ -120,6 +136,7 @@ class DevinClient:
         return {
             "session_id": data.get("session_id") or data.get("id"),
             "session_url": data.get("url") or data.get("session_url"),
+            "is_new_session": data.get("is_new_session"),
         }
 
     # ---- poll ---------------------------------------------------------- #
@@ -151,8 +168,11 @@ class DevinClient:
     def send_message(self, session_id: str, message: str) -> None:
         if self.mock:
             # A follow-up message means "try again": bump the attempt so the next
-            # poll opens a fresh PR reflecting the next entry in demo_script.
-            mock.register_session(session_id, *_bump_attempt(session_id))
+            # poll opens a fresh PR reflecting the next entry in demo_script
+            # (preserving the snapshot/fast flag).
+            st = mock._sessions.get(session_id, {})
+            mock.register_session(session_id, st.get("cluster_id", "unknown"),
+                                  st.get("attempt", 0) + 1, fast=st.get("fast", False))
             return
         resp = requests.post(
             f"{self.base}/session/{session_id}/message",
@@ -178,11 +198,6 @@ class DevinClient:
     @staticmethod
     def is_failed(status: str) -> bool:
         return status == _FAILED
-
-
-def _bump_attempt(session_id: str):
-    st = mock._sessions.get(session_id, {})
-    return st.get("cluster_id", "unknown"), st.get("attempt", 0) + 1
 
 
 devin = DevinClient()
