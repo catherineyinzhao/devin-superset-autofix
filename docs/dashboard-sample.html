@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <!-- auto-refresh disabled in static sample -->
+  <title>Devin Flaky-Test Autofix</title>
+  <style>
+    :root {
+      --bg:#0d1117; --panel:#161b22; --border:#30363d; --text:#e6edf3; --muted:#8b949e;
+      --green:#2ea043; --red:#da3633; --orange:#db8c1a; --blue:#1f6feb; --purple:#8957e5; --yellow:#bb8009;
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--text);
+           font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif; }
+    .wrap { max-width:1180px; margin:0 auto; padding:24px; }
+    h1 { font-size:20px; margin:0 0 2px; }
+    .sub { color:var(--muted); font-size:13px; margin-bottom:20px; }
+    .cards { display:grid; grid-template-columns:repeat(6,1fr); gap:12px; margin-bottom:24px; }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:14px; }
+    .card .n { font-size:26px; font-weight:700; }
+    .card .l { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.04em; }
+    .card.hl { border-color:var(--red); }
+    .card.hl .n { color:var(--red); }
+    .card.good .n { color:var(--green); }
+    table { width:100%; border-collapse:collapse; background:var(--panel);
+            border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+    th,td { text-align:left; padding:10px 12px; border-bottom:1px solid var(--border); font-size:13px; }
+    th { color:var(--muted); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.04em; }
+    tr:last-child td { border-bottom:none; }
+    tr.lie { background:rgba(218,54,51,.08); }
+    .badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; font-weight:600; }
+    .b-green{background:rgba(46,160,67,.18);color:#3fb950;}
+    .b-red{background:rgba(218,54,51,.18);color:#f85149;}
+    .b-orange{background:rgba(219,140,26,.18);color:#e3a13a;}
+    .b-blue{background:rgba(31,111,235,.18);color:#58a6ff;}
+    .b-purple{background:rgba(137,87,229,.2);color:#a371f7;}
+    .b-grey{background:rgba(139,148,158,.18);color:var(--muted);}
+    a { color:#58a6ff; text-decoration:none; } a:hover { text-decoration:underline; }
+    .lie-note { color:#f85149; font-size:11px; }
+    .prim { color:var(--muted); font-size:10px; font-family:ui-monospace,Menlo,monospace; margin-top:3px; }
+    .timeline { margin-top:24px; background:var(--panel); border:1px solid var(--border);
+                border-radius:8px; padding:8px 14px; max-height:220px; overflow:auto; }
+    .ev { font:12px/1.7 ui-monospace,SFMono-Regular,Menlo,monospace; color:var(--muted); }
+    .ev b { color:var(--text); }
+    .foot { color:var(--muted); font-size:12px; margin-top:18px; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Devin Flaky-Test Autofix</h1>
+  <div class="sub">Independent verification layer for autonomous remediation &nbsp;|&nbsp;
+    repo <b>catherineyinzhao/superset</b> &nbsp;|&nbsp; auto-refresh 5s</div>
+
+  
+
+  
+
+  <div class="cards">
+    <div class="card"><div class="n">5</div><div class="l">Clusters</div></div>
+    <div class="card"><div class="n">3</div><div class="l">In progress</div></div>
+    <div class="card good"><div class="n">1</div><div class="l">Stabilized</div></div>
+    <div class="card hl"><div class="n">3</div><div class="l">CI-green lies caught</div></div>
+    <div class="card hl"><div class="n">1</div><div class="l">Cheat-fixes caught</div></div>
+    <div class="card"><div class="n">5.0</div><div class="l">Eng-hours saved</div></div>
+  </div>
+
+  <table>
+    <thead><tr>
+      <th>Cluster</th><th>Targets</th><th>Status</th>
+      <th>GitHub CI</th><th>Independent verdict</th>
+      <th>Seeds</th><th>Att.</th><th>PR / Session</th>
+    </tr></thead>
+    <tbody>
+    
+      
+      <tr class="lie">
+        <td><b>recaptcha-oauth-config</b>
+          
+          <div class="prim">playbook:pb-flaky-state-isolation | snapshot:snap-superset-dev | knowledge:kb-superset-flaky-incidents</div>
+        </td>
+        <td>1</td>
+        <td>
+    <span class="badge b-purple">escalated</span>
+    
+  </td>
+        <td>
+          <span class="badge b-green">green</span>
+          
+        </td>
+        <td>
+    <span class="badge b-purple">needs human</span>
+    
+  
+          <div class="lie-note">CI lied -- caught it</div>
+        </td>
+        <td>9</td>
+        <td>1</td>
+        <td>
+          -
+           &middot; <a href="https://app.devin.ai/sessions/recaptcha-oauth-config">session</a>
+        </td>
+      </tr>
+    
+      
+      <tr class="">
+        <td><b>csrf-exempt-blueprints</b>
+          
+          <div class="prim">playbook:pb-flaky-state-isolation | snapshot:snap-superset-dev | knowledge:kb-superset-flaky-incidents</div>
+        </td>
+        <td>1</td>
+        <td>
+    <span class="badge b-blue">running</span>
+  </td>
+        <td>
+          <span class="badge b-grey">none</span>
+        </td>
+        <td>
+    <span class="badge b-grey">pending</span>
+  
+          
+        </td>
+        <td>0</td>
+        <td>1</td>
+        <td>
+          -
+           &middot; <a href="https://app.devin.ai/sessions/csrf-exempt-blueprints">session</a>
+        </td>
+      </tr>
+    
+      
+      <tr class="lie">
+        <td><b>catalog-perms-metadata-leak</b>
+          
+          <div class="prim">playbook:pb-flaky-state-isolation | snapshot:snap-superset-dev | knowledge:kb-superset-flaky-incidents</div>
+        </td>
+        <td>1</td>
+        <td>
+    <span class="badge b-blue">validating</span>
+    
+  </td>
+        <td>
+          <span class="badge b-green">green</span>
+          
+        </td>
+        <td>
+    <span class="badge b-orange">still flaky</span>
+    
+  
+          <div class="lie-note">CI lied -- caught it</div>
+        </td>
+        <td>10</td>
+        <td>2</td>
+        <td>
+          -
+           &middot; <a href="https://app.devin.ai/sessions/catalog-perms-metadata-leak">session</a>
+        </td>
+      </tr>
+    
+      
+      <tr class="lie">
+        <td><b>dataset-import-allowlist</b>
+          
+          <div class="prim">playbook:pb-flaky-state-isolation | snapshot:snap-superset-dev | knowledge:kb-superset-flaky-incidents</div>
+        </td>
+        <td>1</td>
+        <td>
+    <span class="badge b-yellow b-orange">feedback</span>
+    
+  </td>
+        <td>
+          <span class="badge b-green">green</span>
+          
+        </td>
+        <td>
+    <span class="badge b-red">cheat detected</span>
+    
+  
+          <div class="lie-note">CI lied -- caught it</div>
+        </td>
+        <td>9</td>
+        <td>2</td>
+        <td>
+          <a href="https://github.com/catherineyinzhao/superset/pull/6">PR</a>
+           &middot; <a href="https://app.devin.ai/sessions/dataset-import-allowlist">session</a>
+        </td>
+      </tr>
+    
+      
+      <tr class="">
+        <td><b>bigquery-flask-g-asyncmock</b>
+          
+          <div class="prim">playbook:pb-flaky-state-isolation | snapshot:snap-superset-dev | knowledge:kb-superset-flaky-incidents</div>
+        </td>
+        <td>1</td>
+        <td>
+    <span class="badge b-green">stabilized</span>
+    
+  </td>
+        <td>
+          <span class="badge b-green">green</span>
+          
+        </td>
+        <td>
+    <span class="badge b-green">stabilized</span>
+    
+  
+          
+        </td>
+        <td>10</td>
+        <td>1</td>
+        <td>
+          <a href="https://github.com/catherineyinzhao/superset/pull/7">PR</a>
+           &middot; <a href="https://app.devin.ai/sessions/bigquery-flask-g-asyncmock">session</a>
+        </td>
+      </tr>
+    
+    </tbody>
+  </table>
+
+  <div class="timeline">
+    
+      <div class="ev"><b>verdict</b>
+        [recaptcha-oauth-config] needs_human_review</div>
+    
+      <div class="ev"><b>verdict</b>
+        [csrf-exempt-blueprints] pending</div>
+    
+      <div class="ev"><b>verdict</b>
+        [catalog-perms-metadata-leak] still_flaky</div>
+    
+      <div class="ev"><b>cheat_caught</b>
+        [dataset-import-allowlist] caught @pytest.mark.flaky in diff</div>
+    
+      <div class="ev"><b>verdict</b>
+        [dataset-import-allowlist] cheat_detected</div>
+    
+      <div class="ev"><b>verdict</b>
+        [bigquery-flask-g-asyncmock] stabilized</div>
+    
+  </div>
+
+  <div class="foot">
+    Verified rate 50% &nbsp;|&nbsp;
+    38 seed-runs executed &nbsp;|&nbsp;
+    avg 0.0s &nbsp;|&nbsp; updated 2026-06-10T16:00:00Z (static sample)
+  </div>
+</div>
+</body>
+</html>
