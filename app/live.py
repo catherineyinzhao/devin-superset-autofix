@@ -49,6 +49,8 @@ def sync() -> int:
     for r in db.list_remediations():
         if not _real(r):
             continue
+        if r.verdict == Verdict.STABILIZED:
+            continue  # already independently verified (e.g. a real local seed-sweep) -- don't downgrade
         n += 1
         snap = devin.get_session(r.session_id)
         status, pr = snap["status"], (snap.get("pr_url") or r.pr_url)
@@ -81,7 +83,9 @@ def sync() -> int:
             db.update_remediation(r.id, status=Status.ESCALATED, verdict=Verdict.NEEDS_HUMAN_REVIEW,
                                   summary="Devin finished a fix but could not open a PR (push blocked, HTTP 403) -- awaiting Devin GitHub-app authorization on the fork.")
         elif devin.is_blocked(status):
-            db.update_remediation(r.id, status=Status.RUNNING, summary="Devin is blocked / needs input.")
+            db.update_remediation(r.id, status=Status.RUNNING, verdict=Verdict.PENDING,
+                                  summary="Devin session is blocked / needs input (pulled live).")
         else:
-            db.update_remediation(r.id, status=Status.RUNNING)
+            db.update_remediation(r.id, status=Status.RUNNING, verdict=Verdict.PENDING,
+                                  summary="Devin session is working (status pulled live from the Devin API).")
     return n

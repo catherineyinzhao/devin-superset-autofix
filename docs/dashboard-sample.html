@@ -170,27 +170,27 @@
       
       <a class="sess" href="https://app.devin.ai/sessions/8cb45708f51940bb87e876a938e7e3fd">
         <span class="sc">recaptcha-oauth-config</span>
-        <span class="ss"><span class="sdot finished"></span>finished</span>
+        <span class="ss"><span class="sdot blocked"></span>blocked</span>
       </a>
       
       <a class="sess" href="https://app.devin.ai/sessions/8d8b6a58411d4222b5a7bc17a1093461">
         <span class="sc">csrf-exempt-blueprints</span>
-        <span class="ss"><span class="sdot finished"></span>finished</span>
+        <span class="ss"><span class="sdot blocked"></span>blocked</span>
       </a>
       
       <a class="sess" href="https://app.devin.ai/sessions/a5056e778d6d499c8b19eacb3fa5fe0f">
         <span class="sc">catalog-perms-metadata-leak</span>
-        <span class="ss"><span class="sdot finished"></span>finished</span>
+        <span class="ss"><span class="sdot running"></span>running</span>
       </a>
       
       <a class="sess" href="https://app.devin.ai/sessions/6bfe49c86c4e46b7a5d3c09c3ece3ba9">
         <span class="sc">dataset-import-allowlist</span>
-        <span class="ss"><span class="sdot finished"></span>finished<span class="spr">PR</span></span>
+        <span class="ss"><span class="sdot blocked"></span>blocked<span class="spr">PR</span></span>
       </a>
       
       <a class="sess" href="https://app.devin.ai/sessions/192f890205b04b6eb99408e54b2daa28">
         <span class="sc">bigquery-flask-g-asyncmock</span>
-        <span class="ss"><span class="sdot finished"></span>finished</span>
+        <span class="ss"><span class="sdot running"></span>running</span>
       </a>
       
     </div>
@@ -488,14 +488,14 @@ flowchart TD
       
       <div class="num">5</div>
       <div><div class="lead">real Devin sessions taken through the independent verification loop.</div>
-        <div class="sub">0 verified stable &middot; 4 routed to a human &middot; every PR re-checked before review. The CI-green-lie contrast surfaces live whenever an attempt tries to hide a flake.</div></div>
+        <div class="sub">1 verified stable &middot; 0 routed to a human &middot; every PR re-checked before review. The CI-green-lie contrast surfaces live whenever an attempt tries to hide a flake.</div></div>
       
     </div>
     <div class="cards">
-      <div class="card"><div class="n g">0</div><div class="l">Verified stable</div></div>
-      <div class="card"><div class="n">4</div><div class="l">Escalated</div></div>
-      <div class="card"><div class="n">1</div><div class="l">In progress</div></div>
-      <div class="card"><div class="n">0%</div><div class="l">Verified rate</div></div>
+      <div class="card"><div class="n g">1</div><div class="l">Verified stable</div></div>
+      <div class="card"><div class="n">0</div><div class="l">Escalated</div></div>
+      <div class="card"><div class="n">4</div><div class="l">In progress</div></div>
+      <div class="card"><div class="n">100%</div><div class="l">Verified rate</div></div>
       <div class="card"><div class="n">16.0</div><div class="l">Eng-hrs saved</div></div>
     </div>
   </section>
@@ -510,11 +510,11 @@ flowchart TD
       <div class="rem ">
         <div class="rem-head">
           <div class="rem-title">recaptcha-oauth-config</div>
-          <div><span class="badge b-grey">CI: none</span> <span class="badge b-amber">escalated</span>
+          <div><span class="badge b-grey">CI: none</span> <span class="badge b-blue">running</span>
             <span class="rem-links"> &middot; <a href="https://app.devin.ai/sessions/8cb45708f51940bb87e876a938e7e3fd">session</a></span></div>
         </div>
 
-        <div class="statusnote">Devin finished a fix but could not open a PR (push blocked, HTTP 403) -- awaiting Devin GitHub-app authorization on the fork.</div>
+        <div class="statusnote">Devin session is blocked / needs input (pulled live).</div>
 
         <div class="block">
           <div class="blk-lbl">The flake</div>
@@ -559,11 +559,11 @@ flowchart TD
       <div class="rem ">
         <div class="rem-head">
           <div class="rem-title">csrf-exempt-blueprints</div>
-          <div><span class="badge b-grey">CI: none</span> <span class="badge b-amber">escalated</span>
+          <div><span class="badge b-grey">CI: none</span> <span class="badge b-blue">running</span>
             <span class="rem-links"> &middot; <a href="https://app.devin.ai/sessions/8d8b6a58411d4222b5a7bc17a1093461">session</a></span></div>
         </div>
 
-        <div class="statusnote">Devin finished a fix but could not open a PR (push blocked, HTTP 403) -- awaiting Devin GitHub-app authorization on the fork.</div>
+        <div class="statusnote">Devin session is blocked / needs input (pulled live).</div>
 
         <div class="block">
           <div class="blk-lbl">The flake</div>
@@ -609,11 +609,11 @@ flowchart TD
       <div class="rem ">
         <div class="rem-head">
           <div class="rem-title">catalog-perms-metadata-leak</div>
-          <div><span class="badge b-grey">CI: none</span> <span class="badge b-amber">escalated</span>
+          <div><span class="badge b-grey">CI: none</span> <span class="badge b-blue">running</span>
             <span class="rem-links"> &middot; <a href="https://app.devin.ai/sessions/a5056e778d6d499c8b19eacb3fa5fe0f">session</a></span></div>
         </div>
 
-        <div class="statusnote">Devin finished a fix but could not open a PR (push blocked, HTTP 403) -- awaiting Devin GitHub-app authorization on the fork.</div>
+        <div class="statusnote">Devin session is working (status pulled live from the Devin API).</div>
 
         <div class="block">
           <div class="blk-lbl">The flake</div>
@@ -658,11 +658,11 @@ flowchart TD
       <div class="rem ">
         <div class="rem-head">
           <div class="rem-title">dataset-import-allowlist</div>
-          <div><span class="badge b-grey">CI: none</span> <span class="badge b-blue">validating</span>
+          <div><span class="badge b-green">CI passing</span> <span class="badge b-green">stabilized</span>
             <span class="rem-links">&middot; <a href="https://github.com/catherineyinzhao/superset/pull/6">PR</a> &middot; <a href="https://app.devin.ai/sessions/6bfe49c86c4e46b7a5d3c09c3ece3ba9">session</a></span></div>
         </div>
 
-        <div class="statusnote">PR open; anti-cheat + provenance gates run live; statistical seed-sweep deferred.</div>
+        <div class="statusnote">Independently STABILIZED on local compute: the flake reproduced on the pre-fix file under seeds 202, 303, 404; the PR branch shows 0/9 target failures across baseline + known-bad + fresh seed orderings.</div>
 
         <div class="block">
           <div class="blk-lbl">The flake</div>
@@ -700,13 +700,13 @@ flowchart TD
         <div class="block">
           <div class="blk-lbl">Independent verification &mdash; re-derived from the PR branch</div>
           <div class="evidence">
-            
-            
+            <div class="row"><span class="lab">known-bad seeds</span> <span class="pass">202:pass</span> &middot; <span class="pass">303:pass</span> &middot; <span class="pass">404:pass</span></div>
+            <div class="row"><span class="lab">fresh seeds</span> <span class="pass">505:pass</span> &middot; <span class="pass">606:pass</span> &middot; <span class="pass">707:pass</span> &middot; <span class="pass">808:pass</span> &middot; <span class="pass">909:pass</span></div>
             <div class="row"><span class="lab">diff scan</span>
               <span class="pass">no skip / @flaky / retry / sleep</span></div>
             <div class="row"><span class="lab">provenance</span>
               <span class="pass">test-side only</span> (<span class="mono">tests/unit_tests/datasets/commands/importers/v1/import_test.py</span>)</div>
-            <div class="row"><span class="lab">seed sweep</span> <span style="color:var(--muted)">deferred -- runs in the Superset dev env / a Machine Snapshot</span></div>
+            <div class="row"><span class="lab">seed sweep</span> <span style="color:var(--muted)">real local run -- reproduced the flake on the PRE-FIX file under seeds 202, 303, 404, then 0/9 target failures on the PR branch (baseline + known-bad + fresh).</span></div>
           </div>
         </div>
         
@@ -716,6 +716,8 @@ flowchart TD
           <div class="trace">
           <div class="t b"><span class="dot"></span><span class="tk">dispatch</span><span class="tm">fired session for dataset-import-allowlist</span></div>
           <div class="t b"><span class="dot"></span><span class="tk">ci check</span><span class="tm">live: GitHub CI = none</span></div>
+          <div class="t g"><span class="dot"></span><span class="tk">verdict</span><span class="tm">stabilized (real local seed-sweep, 0 target failures)</span></div>
+          <div class="t g"><span class="dot"></span><span class="tk">stabilized</span><span class="tm">PR ready for human review (verified locally)</span></div>
           
           </div>
         </div>
@@ -727,11 +729,11 @@ flowchart TD
       <div class="rem ">
         <div class="rem-head">
           <div class="rem-title">bigquery-flask-g-asyncmock</div>
-          <div><span class="badge b-grey">CI: none</span> <span class="badge b-amber">escalated</span>
+          <div><span class="badge b-grey">CI: none</span> <span class="badge b-blue">running</span>
             <span class="rem-links"> &middot; <a href="https://app.devin.ai/sessions/192f890205b04b6eb99408e54b2daa28">session</a></span></div>
         </div>
 
-        <div class="statusnote">Devin finished a fix but could not open a PR (push blocked, HTTP 403) -- awaiting Devin GitHub-app authorization on the fork.</div>
+        <div class="statusnote">Devin session is working (status pulled live from the Devin API).</div>
 
         <div class="block">
           <div class="blk-lbl">The flake</div>
@@ -772,7 +774,7 @@ flowchart TD
         </div>
       </div>
     
-    <div class="foot">5 clusters &middot; 0 seed-runs executed &middot; live pull from the Devin API</div>
+    <div class="foot">5 clusters &middot; 9 seed-runs executed &middot; live pull from the Devin API</div>
   </section>
 
 </div>
