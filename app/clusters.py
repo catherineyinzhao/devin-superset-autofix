@@ -23,6 +23,12 @@ class Cluster:
     known_bad_seeds: List[int]
     root_cause: str
     prompt_file: str
+    # Concrete discovery evidence (from docs/FLAKY_REPORT.md) -- surfaced on the
+    # dashboard so a viewer sees the actual failure, the leaking predecessor, and
+    # what a correct root-cause fix looks like.
+    failure_excerpt: str = ""
+    leaker: str = ""
+    fix_note: str = ""
     # Devin Playbook key for this flake class (-> a reusable remediation
     # procedure). All current clusters are order-dependence/shared-state, so they
     # share the "state-isolation" playbook; resolved to a real id via env.
@@ -63,6 +69,9 @@ CLUSTERS: List[Cluster] = [
             "AsyncMock instead of MagicMock, so `g.bq_memory_limited is False` fails. One fix "
             "stabilizes all five tests."
         ),
+        failure_excerpt="AssertionError: assert <AsyncMock name='g.bq_memory_limited'> is False  (test_bigquery.py:660)",
+        leaker="a prior test leaks an async/global flask.g context, so mocker.patch('...bigquery.g') resolves to AsyncMock",
+        fix_note="reset the flask.g/app-context between tests (fixture teardown) so the patch is a MagicMock in any order",
         prompt_file="docs/prompts/fix-bigquery-flaky.md",
         labels=["devin-fix", "flake-class:order-dependence", "cluster:bigquery-flask-g"],
         human_baseline_hours=5.0,  # 5 tests, subtle AsyncMock-vs-MagicMock leak
@@ -81,6 +90,9 @@ CLUSTERS: List[Cluster] = [
             "by an earlier test - sometimes missing the allowed URL, sometimes containing an "
             "invalid regex."
         ),
+        failure_excerpt="DatasetForbiddenDataURI: Data URI is not allowed (utils.py:108); under seed 404, re.error: nothing to repeat",
+        leaker="test_validate_data_uri mutates app.config['DATASET_IMPORT_ALLOWED_DATA_URLS'] and never restores it",
+        fix_note="wrap the config mutation in try/finally to restore the original allow-list",
         prompt_file="docs/prompts/fix-dataset-import-flaky.md",
         labels=["devin-fix", "flake-class:order-dependence", "cluster:dataset-import"],
         human_baseline_hours=3.0,
@@ -101,6 +113,9 @@ CLUSTERS: List[Cluster] = [
             "Extra ViewMenu/Permission rows leak into the shared in-memory metadata DB from "
             "earlier tests, changing the row set/order compared against an expected ordered list."
         ),
+        failure_excerpt="AssertionError: query(ViewMenu.name, Permission.name).all() has one extra row  (catalogs_test.py:189)",
+        leaker="earlier tests leak ViewMenu/Permission rows into the shared in-memory metadata DB",
+        fix_note="roll back / isolate the metadata session so leaked rows do not persist across tests",
         prompt_file="docs/prompts/fix-catalog-perms-flaky.md",
         labels=["devin-fix", "flake-class:order-dependence", "cluster:catalog-perms"],
         human_baseline_hours=3.0,
@@ -119,6 +134,9 @@ CLUSTERS: List[Cluster] = [
             "A prior test registers the ApiKeyApi blueprint as CSRF-exempt on the shared csrf "
             "object, polluting the exempt-blueprints set asserted by this test."
         ),
+        failure_excerpt="AssertionError: csrf._exempt_blueprints has extra item 'ApiKeyApi'  (api_test.py:34)",
+        leaker="a prior test registers the ApiKeyApi blueprint as CSRF-exempt on the shared csrf object",
+        fix_note="isolate/reset the csrf exempt-blueprints set per test so registrations don't leak",
         prompt_file="docs/prompts/fix-csrf-exempt-flaky.md",
         labels=["devin-fix", "flake-class:order-dependence", "cluster:csrf-exempt"],
         human_baseline_hours=2.0,
@@ -136,6 +154,9 @@ CLUSTERS: List[Cluster] = [
             "current_app.config['OAUTH_PROVIDERS'] is only present when an earlier test sets it; "
             "compounded by flask_caching memoization of cached_common_bootstrap_data."
         ),
+        failure_excerpt="KeyError: 'OAUTH_PROVIDERS'  (flask_appbuilder/security/manager.py:532, via cached_common_bootstrap_data)",
+        leaker="OAUTH_PROVIDERS is only set by an earlier test; flask_caching memoization compounds the leak",
+        fix_note="suspected PRODUCT bug (memoized config reads a possibly-absent key) -> escalate, do not edit the test",
         prompt_file="docs/prompts/fix-recaptcha-flaky.md",
         labels=["devin-fix", "flake-class:order-dependence", "cluster:recaptcha-oauth"],
         human_baseline_hours=3.0,
