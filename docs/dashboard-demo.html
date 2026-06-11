@@ -164,38 +164,6 @@
   </header>
 
   
-  <div class="strip">
-    <div class="strip-lbl"><span class="live-dot"></span> Real Devin sessions &mdash; status pulled live from the Devin API</div>
-    <div class="sessgrid">
-      
-      <a class="sess" href="https://app.devin.ai/sessions/8cb45708f51940bb87e876a938e7e3fd">
-        <span class="sc">recaptcha-oauth-config</span>
-        <span class="ss"><span class="sdot finished"></span>finished</span>
-      </a>
-      
-      <a class="sess" href="https://app.devin.ai/sessions/8d8b6a58411d4222b5a7bc17a1093461">
-        <span class="sc">csrf-exempt-blueprints</span>
-        <span class="ss"><span class="sdot finished"></span>finished</span>
-      </a>
-      
-      <a class="sess" href="https://app.devin.ai/sessions/a5056e778d6d499c8b19eacb3fa5fe0f">
-        <span class="sc">catalog-perms-metadata-leak</span>
-        <span class="ss"><span class="sdot finished"></span>finished</span>
-      </a>
-      
-      <a class="sess" href="https://app.devin.ai/sessions/6bfe49c86c4e46b7a5d3c09c3ece3ba9">
-        <span class="sc">dataset-import-allowlist</span>
-        <span class="ss"><span class="sdot finished"></span>finished<span class="spr">PR</span></span>
-      </a>
-      
-      <a class="sess" href="https://app.devin.ai/sessions/192f890205b04b6eb99408e54b2daa28">
-        <span class="sc">bigquery-flask-g-asyncmock</span>
-        <span class="ss"><span class="sdot finished"></span>finished</span>
-      </a>
-      
-    </div>
-  </div>
-  
 
   <section>
     <div class="eyebrow"><span class="enum">01</span> Why this exists</div>
@@ -486,17 +454,17 @@ flowchart TD
     <div class="eyebrow"><span class="enum">06</span> Results</div>
     <div class="headline">
       
-      <div class="num">5</div>
-      <div><div class="lead">real Devin sessions taken through the independent verification loop.</div>
-        <div class="sub">0 verified stable &middot; 4 routed to a human &middot; every PR re-checked before review. The CI-green-lie contrast surfaces live whenever an attempt tries to hide a flake.</div></div>
+      <div class="num">3</div>
+      <div><div class="lead">times CI reported <b>green</b>, but the validator disagreed &mdash; caught before merge.</div>
+        <div class="sub">Including 1 cheat-fix(es) blocked. A CI-only check is structurally blind to these.</div></div>
       
     </div>
     <div class="cards">
-      <div class="card"><div class="n g">0</div><div class="l">Verified stable</div></div>
-      <div class="card"><div class="n">4</div><div class="l">Escalated</div></div>
-      <div class="card"><div class="n">1</div><div class="l">In progress</div></div>
-      <div class="card"><div class="n">0%</div><div class="l">Verified rate</div></div>
-      <div class="card"><div class="n">16.0</div><div class="l">Eng-hrs saved</div></div>
+      <div class="card"><div class="n g">4</div><div class="l">Verified stable</div></div>
+      <div class="card"><div class="n">1</div><div class="l">Escalated</div></div>
+      <div class="card"><div class="n">0</div><div class="l">In progress</div></div>
+      <div class="card"><div class="n">80%</div><div class="l">Verified rate</div></div>
+      <div class="card"><div class="n">13.0</div><div class="l">Eng-hrs saved</div></div>
     </div>
   </section>
 
@@ -507,14 +475,14 @@ flowchart TD
       
       
       
-      <div class="rem ">
+      <div class="rem dis">
         <div class="rem-head">
           <div class="rem-title">recaptcha-oauth-config</div>
-          <div><span class="badge b-grey">CI: none</span> <span class="badge b-amber">escalated</span>
-            <span class="rem-links"> &middot; <a href="https://app.devin.ai/sessions/8cb45708f51940bb87e876a938e7e3fd">session</a></span></div>
+          <div><span class="badge b-green">CI passing</span> <span class="badge b-amber">escalated</span>
+            <span class="rem-links">&middot; <a href="https://github.com/catherineyinzhao/superset/pull/4207">PR</a> &middot; <a href="https://app.devin.ai/sessions/devin-mock-recaptcha-oauth-config-a0">session</a></span></div>
         </div>
 
-        <div class="statusnote">Devin finished a fix but could not open a PR (push blocked, HTTP 403) -- awaiting Devin GitHub-app authorization on the fork.</div>
+        <div class="statusnote">ESCALATED: fix touched product code under superset/ (or the session escalated a suspected product bug). Routed to a human -- not auto-stabilized.</div>
 
         <div class="block">
           <div class="blk-lbl">The flake</div>
@@ -540,14 +508,33 @@ flowchart TD
 </pre>
         </div>
 
-        
+        <div class="flag">&#9650; GitHub CI reported passing &mdash; the validator independently disagreed and caught it before merge.</div>
 
+        
+        <div class="block">
+          <div class="blk-lbl">Independent verification &mdash; re-derived from the PR branch</div>
+          <div class="evidence">
+            <div class="row"><span class="lab">known-bad seeds</span> <span class="pass">101:pass</span> &middot; <span class="pass">303:pass</span> &middot; <span class="pass">404:pass</span></div>
+            <div class="row"><span class="lab">fresh seeds</span> <span class="pass">505:pass</span> &middot; <span class="pass">606:pass</span> &middot; <span class="pass">707:pass</span> &middot; <span class="pass">808:pass</span> &middot; <span class="pass">909:pass</span></div>
+            <div class="row"><span class="lab">diff scan</span>
+              <span class="pass">no skip / @flaky / retry / sleep</span></div>
+            <div class="row"><span class="lab">provenance</span>
+              <span class="fail">touched product code &rarr; escalate</span></div>
+            
+          </div>
+        </div>
         
 
         <div class="block">
           <div class="blk-lbl">Decision trace</div>
           <div class="trace">
-          <div class="t b"><span class="dot"></span><span class="tk">dispatch</span><span class="tm">fired session for recaptcha-oauth-config</span></div>
+          <div class="t "><span class="dot"></span><span class="tk">queued</span><span class="tm">queued recaptcha-oauth-config</span></div>
+          <div class="t b"><span class="dot"></span><span class="tk">dispatch</span><span class="tm">dispatched Devin for recaptcha-oauth-config</span></div>
+          <div class="t "><span class="dot"></span><span class="tk">context</span><span class="tm">playbook:pb-flaky-state-isolation | snapshot:snap-superset-dev | knowledge:kb-superset-flaky-incidents</span></div>
+          <div class="t b"><span class="dot"></span><span class="tk">verify</span><span class="tm">independent re-derivation started</span></div>
+          <div class="t b"><span class="dot"></span><span class="tk">ci check</span><span class="tm">GitHub CI reported: green</span></div>
+          <div class="t a"><span class="dot"></span><span class="tk">verdict</span><span class="tm">ESCALATED: fix touched product code under superset/ (or the session escalated a suspected product bug). Routed to a human -- not auto-stabilized.</span></div>
+          <div class="t a"><span class="dot"></span><span class="tk">escalated</span><span class="tm">routed to human (product bug / escalation)</span></div>
           
           </div>
         </div>
@@ -559,11 +546,11 @@ flowchart TD
       <div class="rem ">
         <div class="rem-head">
           <div class="rem-title">csrf-exempt-blueprints</div>
-          <div><span class="badge b-grey">CI: none</span> <span class="badge b-amber">escalated</span>
-            <span class="rem-links"> &middot; <a href="https://app.devin.ai/sessions/8d8b6a58411d4222b5a7bc17a1093461">session</a></span></div>
+          <div><span class="badge b-green">CI passing</span> <span class="badge b-green">stabilized</span>
+            <span class="rem-links">&middot; <a href="https://github.com/catherineyinzhao/superset/pull/4206">PR</a> &middot; <a href="https://app.devin.ai/sessions/devin-mock-csrf-exempt-blueprints-a0">session</a></span></div>
         </div>
 
-        <div class="statusnote">Devin finished a fix but could not open a PR (push blocked, HTTP 403) -- awaiting Devin GitHub-app authorization on the fork.</div>
+        <div class="statusnote">Re-ran tests/unit_tests/ 8x (2 known-bad + 5 fresh seeds): 0/1 target failures, 0 regressions, no skip/retry/flaky markers added. STABILIZED.</div>
 
         <div class="block">
           <div class="blk-lbl">The flake</div>
@@ -593,11 +580,30 @@ flowchart TD
         
 
         
+        <div class="block">
+          <div class="blk-lbl">Independent verification &mdash; re-derived from the PR branch</div>
+          <div class="evidence">
+            <div class="row"><span class="lab">known-bad seeds</span> <span class="pass">303:pass</span> &middot; <span class="pass">404:pass</span></div>
+            <div class="row"><span class="lab">fresh seeds</span> <span class="pass">505:pass</span> &middot; <span class="pass">606:pass</span> &middot; <span class="pass">707:pass</span> &middot; <span class="pass">808:pass</span> &middot; <span class="pass">909:pass</span></div>
+            <div class="row"><span class="lab">diff scan</span>
+              <span class="pass">no skip / @flaky / retry / sleep</span></div>
+            <div class="row"><span class="lab">provenance</span>
+              <span class="pass">test-side only</span> (<span class="mono">tests/unit_tests/security/conftest.py</span>)</div>
+            
+          </div>
+        </div>
+        
 
         <div class="block">
           <div class="blk-lbl">Decision trace</div>
           <div class="trace">
-          <div class="t b"><span class="dot"></span><span class="tk">dispatch</span><span class="tm">fired session for csrf-exempt-blueprints</span></div>
+          <div class="t "><span class="dot"></span><span class="tk">queued</span><span class="tm">queued csrf-exempt-blueprints</span></div>
+          <div class="t b"><span class="dot"></span><span class="tk">dispatch</span><span class="tm">dispatched Devin for csrf-exempt-blueprints</span></div>
+          <div class="t "><span class="dot"></span><span class="tk">context</span><span class="tm">playbook:pb-flaky-state-isolation | snapshot:snap-superset-dev | knowledge:kb-superset-flaky-incidents</span></div>
+          <div class="t b"><span class="dot"></span><span class="tk">verify</span><span class="tm">independent re-derivation started</span></div>
+          <div class="t b"><span class="dot"></span><span class="tk">ci check</span><span class="tm">GitHub CI reported: green</span></div>
+          <div class="t g"><span class="dot"></span><span class="tk">verdict</span><span class="tm">Re-ran tests/unit_tests/ 8x (2 known-bad + 5 fresh seeds): 0/1 target failures, 0 regressions, no skip/retry/flaky markers added. STABILIZED.</span></div>
+          <div class="t g"><span class="dot"></span><span class="tk">stabilized</span><span class="tm">PR ready for human review</span></div>
           
           </div>
         </div>
@@ -609,11 +615,11 @@ flowchart TD
       <div class="rem ">
         <div class="rem-head">
           <div class="rem-title">catalog-perms-metadata-leak</div>
-          <div><span class="badge b-grey">CI: none</span> <span class="badge b-amber">escalated</span>
-            <span class="rem-links"> &middot; <a href="https://app.devin.ai/sessions/a5056e778d6d499c8b19eacb3fa5fe0f">session</a></span></div>
+          <div><span class="badge b-green">CI passing</span> <span class="badge b-green">stabilized</span>
+            <span class="rem-links">&middot; <a href="https://github.com/catherineyinzhao/superset/pull/4205">PR</a> &middot; <a href="https://app.devin.ai/sessions/devin-mock-catalog-perms-metadata-leak-a0">session</a></span></div>
         </div>
 
-        <div class="statusnote">Devin finished a fix but could not open a PR (push blocked, HTTP 403) -- awaiting Devin GitHub-app authorization on the fork.</div>
+        <div class="statusnote">Re-ran tests/unit_tests/ 10x (4 known-bad + 5 fresh seeds): 0/1 target failures, 0 regressions, no skip/retry/flaky markers added. STABILIZED.</div>
 
         <div class="block">
           <div class="blk-lbl">The flake</div>
@@ -642,11 +648,34 @@ flowchart TD
         
 
         
+        <div class="block">
+          <div class="blk-lbl">Independent verification &mdash; re-derived from the PR branch</div>
+          <div class="evidence">
+            <div class="row"><span class="lab">known-bad seeds</span> <span class="pass">101:pass</span> &middot; <span class="pass">202:pass</span> &middot; <span class="pass">303:pass</span> &middot; <span class="pass">404:pass</span></div>
+            <div class="row"><span class="lab">fresh seeds</span> <span class="pass">505:pass</span> &middot; <span class="pass">606:pass</span> &middot; <span class="pass">707:pass</span> &middot; <span class="pass">808:pass</span> &middot; <span class="pass">909:pass</span></div>
+            <div class="row"><span class="lab">diff scan</span>
+              <span class="pass">no skip / @flaky / retry / sleep</span></div>
+            <div class="row"><span class="lab">provenance</span>
+              <span class="pass">test-side only</span> (<span class="mono">tests/unit_tests/migrations/conftest.py</span>)</div>
+            
+          </div>
+        </div>
+        
 
         <div class="block">
           <div class="blk-lbl">Decision trace</div>
           <div class="trace">
-          <div class="t b"><span class="dot"></span><span class="tk">dispatch</span><span class="tm">fired session for catalog-perms-metadata-leak</span></div>
+          <div class="t "><span class="dot"></span><span class="tk">queued</span><span class="tm">queued catalog-perms-metadata-leak</span></div>
+          <div class="t b"><span class="dot"></span><span class="tk">dispatch</span><span class="tm">dispatched Devin for catalog-perms-metadata-leak</span></div>
+          <div class="t "><span class="dot"></span><span class="tk">context</span><span class="tm">playbook:pb-flaky-state-isolation | snapshot:snap-superset-dev | knowledge:kb-superset-flaky-incidents</span></div>
+          <div class="t b"><span class="dot"></span><span class="tk">verify</span><span class="tm">independent re-derivation started</span></div>
+          <div class="t b"><span class="dot"></span><span class="tk">ci check</span><span class="tm">GitHub CI reported: green</span></div>
+          <div class="t r"><span class="dot"></span><span class="tk">verdict</span><span class="tm">REJECTED: CI reported 'green', but re-running 10x found a target still failing under seed(s) ['101']. Not stabilized.</span></div>
+          <div class="t r"><span class="dot"></span><span class="tk">feedback</span><span class="tm">verdict=still_flaky; sent correction (round 2)</span></div>
+          <div class="t b"><span class="dot"></span><span class="tk">verify</span><span class="tm">independent re-derivation started</span></div>
+          <div class="t b"><span class="dot"></span><span class="tk">ci check</span><span class="tm">GitHub CI reported: green</span></div>
+          <div class="t g"><span class="dot"></span><span class="tk">verdict</span><span class="tm">Re-ran tests/unit_tests/ 10x (4 known-bad + 5 fresh seeds): 0/1 target failures, 0 regressions, no skip/retry/flaky markers added. STABILIZED.</span></div>
+          <div class="t g"><span class="dot"></span><span class="tk">stabilized</span><span class="tm">PR ready for human review</span></div>
           
           </div>
         </div>
@@ -658,11 +687,11 @@ flowchart TD
       <div class="rem ">
         <div class="rem-head">
           <div class="rem-title">dataset-import-allowlist</div>
-          <div><span class="badge b-grey">CI: none</span> <span class="badge b-blue">validating</span>
-            <span class="rem-links">&middot; <a href="https://github.com/catherineyinzhao/superset/pull/6">PR</a> &middot; <a href="https://app.devin.ai/sessions/6bfe49c86c4e46b7a5d3c09c3ece3ba9">session</a></span></div>
+          <div><span class="badge b-green">CI passing</span> <span class="badge b-green">stabilized</span>
+            <span class="rem-links">&middot; <a href="https://github.com/catherineyinzhao/superset/pull/4204">PR</a> &middot; <a href="https://app.devin.ai/sessions/devin-mock-dataset-import-allowlist-a0">session</a></span></div>
         </div>
 
-        <div class="statusnote">PR open; anti-cheat + provenance gates run live; statistical seed-sweep deferred.</div>
+        <div class="statusnote">Re-ran tests/unit_tests/ 9x (3 known-bad + 5 fresh seeds): 0/1 target failures, 0 regressions, no skip/retry/flaky markers added. STABILIZED.</div>
 
         <div class="block">
           <div class="blk-lbl">The flake</div>
@@ -700,13 +729,13 @@ flowchart TD
         <div class="block">
           <div class="blk-lbl">Independent verification &mdash; re-derived from the PR branch</div>
           <div class="evidence">
-            
-            
+            <div class="row"><span class="lab">known-bad seeds</span> <span class="pass">202:pass</span> &middot; <span class="pass">303:pass</span> &middot; <span class="pass">404:pass</span></div>
+            <div class="row"><span class="lab">fresh seeds</span> <span class="pass">505:pass</span> &middot; <span class="pass">606:pass</span> &middot; <span class="pass">707:pass</span> &middot; <span class="pass">808:pass</span> &middot; <span class="pass">909:pass</span></div>
             <div class="row"><span class="lab">diff scan</span>
               <span class="pass">no skip / @flaky / retry / sleep</span></div>
             <div class="row"><span class="lab">provenance</span>
-              <span class="pass">test-side only</span> (<span class="mono">tests/unit_tests/datasets/commands/importers/v1/import_test.py</span>)</div>
-            <div class="row"><span class="lab">seed sweep</span> <span style="color:var(--muted)">deferred -- runs in the Superset dev env / a Machine Snapshot</span></div>
+              <span class="pass">test-side only</span> (<span class="mono">tests/unit_tests/datasets/conftest.py</span>)</div>
+            
           </div>
         </div>
         
@@ -714,8 +743,18 @@ flowchart TD
         <div class="block">
           <div class="blk-lbl">Decision trace</div>
           <div class="trace">
-          <div class="t b"><span class="dot"></span><span class="tk">dispatch</span><span class="tm">fired session for dataset-import-allowlist</span></div>
-          <div class="t b"><span class="dot"></span><span class="tk">ci check</span><span class="tm">live: GitHub CI = none</span></div>
+          <div class="t "><span class="dot"></span><span class="tk">queued</span><span class="tm">queued dataset-import-allowlist</span></div>
+          <div class="t b"><span class="dot"></span><span class="tk">dispatch</span><span class="tm">dispatched Devin for dataset-import-allowlist</span></div>
+          <div class="t "><span class="dot"></span><span class="tk">context</span><span class="tm">playbook:pb-flaky-state-isolation | snapshot:snap-superset-dev | knowledge:kb-superset-flaky-incidents</span></div>
+          <div class="t b"><span class="dot"></span><span class="tk">verify</span><span class="tm">independent re-derivation started</span></div>
+          <div class="t b"><span class="dot"></span><span class="tk">ci check</span><span class="tm">GitHub CI reported: green</span></div>
+          <div class="t r"><span class="dot"></span><span class="tk">verdict</span><span class="tm">REJECTED: CI reported 'green', but the diff contains forbidden anti-cheat pattern(s): pytest.mark.flaky, flaky(...), pytest-rerunfailures. The flake was hidden, not fixed.</span></div>
+          <div class="t r"><span class="dot"></span><span class="tk">cheat caught</span><span class="tm">REJECTED: CI reported 'green', but the diff contains forbidden anti-cheat pattern(s): pytest.mark.flaky, flaky(...), pytest-rerunfailures. The flake was hidden, not fixed.</span></div>
+          <div class="t r"><span class="dot"></span><span class="tk">feedback</span><span class="tm">verdict=cheat_detected; sent correction (round 2)</span></div>
+          <div class="t b"><span class="dot"></span><span class="tk">verify</span><span class="tm">independent re-derivation started</span></div>
+          <div class="t b"><span class="dot"></span><span class="tk">ci check</span><span class="tm">GitHub CI reported: green</span></div>
+          <div class="t g"><span class="dot"></span><span class="tk">verdict</span><span class="tm">Re-ran tests/unit_tests/ 9x (3 known-bad + 5 fresh seeds): 0/1 target failures, 0 regressions, no skip/retry/flaky markers added. STABILIZED.</span></div>
+          <div class="t g"><span class="dot"></span><span class="tk">stabilized</span><span class="tm">PR ready for human review</span></div>
           
           </div>
         </div>
@@ -727,11 +766,11 @@ flowchart TD
       <div class="rem ">
         <div class="rem-head">
           <div class="rem-title">bigquery-flask-g-asyncmock</div>
-          <div><span class="badge b-grey">CI: none</span> <span class="badge b-amber">escalated</span>
-            <span class="rem-links"> &middot; <a href="https://app.devin.ai/sessions/192f890205b04b6eb99408e54b2daa28">session</a></span></div>
+          <div><span class="badge b-green">CI passing</span> <span class="badge b-green">stabilized</span>
+            <span class="rem-links">&middot; <a href="https://github.com/catherineyinzhao/superset/pull/4201">PR</a> &middot; <a href="https://app.devin.ai/sessions/devin-mock-bigquery-flask-g-asyncmock-a0">session</a></span></div>
         </div>
 
-        <div class="statusnote">Devin finished a fix but could not open a PR (push blocked, HTTP 403) -- awaiting Devin GitHub-app authorization on the fork.</div>
+        <div class="statusnote">Re-ran tests/unit_tests/ 10x (4 known-bad + 5 fresh seeds): 0/5 target failures, 0 regressions, no skip/retry/flaky markers added. STABILIZED.</div>
 
         <div class="block">
           <div class="blk-lbl">The flake</div>
@@ -762,17 +801,36 @@ flowchart TD
         
 
         
+        <div class="block">
+          <div class="blk-lbl">Independent verification &mdash; re-derived from the PR branch</div>
+          <div class="evidence">
+            <div class="row"><span class="lab">known-bad seeds</span> <span class="pass">101:pass</span> &middot; <span class="pass">202:pass</span> &middot; <span class="pass">303:pass</span> &middot; <span class="pass">404:pass</span></div>
+            <div class="row"><span class="lab">fresh seeds</span> <span class="pass">505:pass</span> &middot; <span class="pass">606:pass</span> &middot; <span class="pass">707:pass</span> &middot; <span class="pass">808:pass</span> &middot; <span class="pass">909:pass</span></div>
+            <div class="row"><span class="lab">diff scan</span>
+              <span class="pass">no skip / @flaky / retry / sleep</span></div>
+            <div class="row"><span class="lab">provenance</span>
+              <span class="pass">test-side only</span> (<span class="mono">tests/unit_tests/db_engine_specs/conftest.py</span>)</div>
+            
+          </div>
+        </div>
+        
 
         <div class="block">
           <div class="blk-lbl">Decision trace</div>
           <div class="trace">
-          <div class="t b"><span class="dot"></span><span class="tk">dispatch</span><span class="tm">fired session for bigquery-flask-g-asyncmock</span></div>
+          <div class="t "><span class="dot"></span><span class="tk">queued</span><span class="tm">queued bigquery-flask-g-asyncmock</span></div>
+          <div class="t b"><span class="dot"></span><span class="tk">dispatch</span><span class="tm">dispatched Devin for bigquery-flask-g-asyncmock</span></div>
+          <div class="t "><span class="dot"></span><span class="tk">context</span><span class="tm">playbook:pb-flaky-state-isolation | snapshot:snap-superset-dev | knowledge:kb-superset-flaky-incidents</span></div>
+          <div class="t b"><span class="dot"></span><span class="tk">verify</span><span class="tm">independent re-derivation started</span></div>
+          <div class="t b"><span class="dot"></span><span class="tk">ci check</span><span class="tm">GitHub CI reported: green</span></div>
+          <div class="t g"><span class="dot"></span><span class="tk">verdict</span><span class="tm">Re-ran tests/unit_tests/ 10x (4 known-bad + 5 fresh seeds): 0/5 target failures, 0 regressions, no skip/retry/flaky markers added. STABILIZED.</span></div>
+          <div class="t g"><span class="dot"></span><span class="tk">stabilized</span><span class="tm">PR ready for human review</span></div>
           
           </div>
         </div>
       </div>
     
-    <div class="foot">5 clusters &middot; 0 seed-runs executed &middot; live pull from the Devin API</div>
+    <div class="foot">5 clusters &middot; 46 seed-runs executed &middot; simulated run (mock mode) -- capability demo</div>
   </section>
 
 </div>

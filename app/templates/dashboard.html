@@ -57,6 +57,15 @@
     .lp h3{font-size:15.5px;color:var(--ink);margin:0 0 4px;font-weight:600;}
     .lp p{margin:0;font-size:14.5px;color:var(--body);line-height:1.55;}
 
+    /* devin primitives grid */
+    .prims{display:grid;grid-template-columns:1fr 1fr;gap:18px 24px;}
+    .prim{border:1px solid var(--border);border-radius:2px;padding:16px 18px;background:var(--surface);}
+    .prim .pname{font-size:15px;font-weight:600;color:var(--ink);}
+    .prim .pparam{font-family:var(--mono);font-size:11px;color:var(--accent);margin-left:8px;}
+    .prim .pwhat{font-size:13.5px;color:var(--body);margin-top:6px;line-height:1.5;}
+    .prim .pwhy{font-size:13px;color:var(--muted);margin-top:8px;line-height:1.5;}
+    .prim .pwhy b{color:var(--ink);font-weight:600;}
+
     .steps{display:grid;grid-template-columns:1fr 1fr;gap:28px 44px;}
     .step{display:flex;gap:15px;}
     .step .idx{font-family:var(--mono);font-size:13px;color:var(--accent);min-width:20px;padding-top:2px;}
@@ -129,6 +138,20 @@
     .b-green{background:#e7f1ea;color:var(--green);} .b-red{background:#f7e7e4;color:var(--red);}
     .b-amber{background:#f3ead8;color:var(--amber);} .b-blue{background:#e7e7fb;color:var(--accent);} .b-grey{background:#eceae2;color:var(--muted);}
     .foot{font-family:var(--mono);color:var(--faint);font-size:11.5px;margin-top:28px;letter-spacing:.01em;}
+
+    /* live strip: real Devin sessions pulled from the API */
+    .strip{margin-top:36px;border:1px solid var(--border2);border-radius:2px;background:var(--surface);padding:16px 20px;}
+    .strip-lbl{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:13px;display:flex;align-items:center;gap:8px;}
+    .live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;box-shadow:0 0 0 3px rgba(31,122,67,.15);}
+    .sessgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:9px;}
+    .sess{display:block;border:1px solid var(--border);border-radius:2px;padding:10px 12px;background:#fbfaf6;}
+    .sess:hover{border-color:var(--border2);text-decoration:none;}
+    .sess .sc{display:block;font-family:var(--mono);font-size:11px;color:var(--ink);font-weight:600;margin-bottom:4px;}
+    .sess .ss{font-family:var(--mono);font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.02em;}
+    .sdot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:middle;background:var(--faint);}
+    .sdot.finished{background:var(--green);} .sdot.running{background:var(--accent);} .sdot.blocked{background:var(--amber);}
+    .sess .spr{font-family:var(--mono);font-size:10px;color:var(--accent);margin-left:7px;}
+    .statusnote{font-size:13.5px;color:var(--muted);margin-top:14px;line-height:1.5;}
   </style>
 </head>
 <body>
@@ -166,6 +189,20 @@
       across many orderings and scans for cheat-fixes.</p>
     <div class="repo">target: github.com/{{ metrics.repo }} &nbsp;|&nbsp; live, auto-refresh 5s</div>
   </header>
+
+  {% if live %}
+  <div class="strip">
+    <div class="strip-lbl"><span class="live-dot"></span> Real Devin sessions &mdash; status pulled live from the Devin API</div>
+    <div class="sessgrid">
+      {% for s in live %}
+      <a class="sess" href="{{ s.session_url }}">
+        <span class="sc">{{ s.cluster_id }}</span>
+        <span class="ss"><span class="sdot {{ s.status }}"></span>{{ s.status }}{% if s.pr_url %}<span class="spr">PR</span>{% endif %}</span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
 
   <section>
     <div class="eyebrow"><span class="enum">01</span> Why this exists</div>
@@ -264,7 +301,43 @@ flowchart TD
   </section>
 
   <section>
-    <div class="eyebrow"><span class="enum">04</span> Why an autonomous agent</div>
+    <div class="eyebrow"><span class="enum">04</span> Built on Devin primitives</div>
+    <h2>Every session carries a Playbook, Knowledge, and a Snapshot</h2>
+    <p class="lead2">Dispatch is not a bare prompt. Each session is created through the Devin Sessions API with
+      the platform's own primitives attached &mdash; which is what makes the work reliable, cheap, and routable.
+      They show up on the cards below as each session's context line.</p>
+    <div class="prims">
+      <div class="prim"><div class="pname">Playbook<span class="pparam">playbook_id</span></div>
+        <div class="pwhat">A reusable remediation procedure for this flake class: reproduce under bad seeds &rarr;
+          bisect the leaking predecessor &rarr; fix the isolation &rarr; self-verify, with the anti-cheat
+          constraints baked in.</div>
+        <div class="pwhy"><b>Why:</b> every session follows the same validated method instead of improvising one.</div></div>
+      <div class="prim"><div class="pname">Knowledge<span class="pparam">knowledge_ids</span></div>
+        <div class="pwhat">The flaky-incident history (the discovery report and prior root causes) injected as org knowledge.</div>
+        <div class="pwhy"><b>Why:</b> the agent starts from prior diagnoses, not a blank slate &mdash; the
+          "context drives the work" finding, done the Devin-native way.</div></div>
+      <div class="prim"><div class="pname">Machine Snapshot<span class="pparam">snapshot_id</span></div>
+        <div class="pwhat">A pre-built Superset dev environment, restored at session start.</div>
+        <div class="pwhy"><b>Why:</b> skips the <code>pip install</code> setup that dominated ACU on the first
+          runs &mdash; the structural fix for verification cost.</div></div>
+      <div class="prim"><div class="pname">Structured output<span class="pparam">structured_output_schema</span></div>
+        <div class="pwhat">Forces a typed result: <code>root_cause</code>, <code>fix_is_test_side_only</code>,
+          <code>escalate</code>, files changed, branch.</div>
+        <div class="pwhy"><b>Why:</b> the orchestrator routes on machine-readable signals (incl. the escalate
+          flag), not on parsing prose.</div></div>
+      <div class="prim"><div class="pname">Session secrets<span class="pparam">session_secrets</span></div>
+        <div class="pwhat">A GitHub token scoped to this session only.</div>
+        <div class="pwhy"><b>Why:</b> lets Devin push the branch and open the PR itself &mdash; closing the
+          push-access gap that otherwise blocks the loop.</div></div>
+      <div class="prim"><div class="pname">Idempotent create<span class="pparam">idempotent + key</span></div>
+        <div class="pwhat">Session creation is idempotent on a <code>{cluster}:{repo}</code> key; spend is capped per
+          session with <code>max_acu_limit</code>.</div>
+        <div class="pwhy"><b>Why:</b> a webhook retry or re-scan never double-fires a session or wastes ACU.</div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow"><span class="enum">05</span> Why an autonomous agent</div>
     <h2>Cheaper alternatives, judged by the same validator</h2>
     <p class="lead2">An org has options short of Devin. The value of an independent bar is that it judges them
       all the same way. Here is what each does to the <code>{{ compare.cluster.id }}</code> cluster, and the
@@ -308,11 +381,17 @@ flowchart TD
   </section>
 
   <section>
-    <div class="eyebrow"><span class="enum">05</span> Results</div>
+    <div class="eyebrow"><span class="enum">06</span> Results</div>
     <div class="headline">
+      {% if metrics.ci_green_lies_caught > 0 %}
       <div class="num">{{ metrics.ci_green_lies_caught }}</div>
       <div><div class="lead">times CI reported <b>green</b>, but the validator disagreed &mdash; caught before merge.</div>
         <div class="sub">Including {{ metrics.cheats_caught }} cheat-fix(es) blocked. A CI-only check is structurally blind to these.</div></div>
+      {% else %}
+      <div class="num">{{ metrics.total }}</div>
+      <div><div class="lead">real Devin sessions taken through the independent verification loop.</div>
+        <div class="sub">{{ metrics.stabilized }} verified stable &middot; {{ metrics.escalated }} routed to a human &middot; every PR re-checked before review. The CI-green-lie contrast surfaces live whenever an attempt tries to hide a flake.</div></div>
+      {% endif %}
     </div>
     <div class="cards">
       <div class="card"><div class="n g">{{ metrics.stabilized }}</div><div class="l">Verified stable</div></div>
@@ -324,7 +403,7 @@ flowchart TD
   </section>
 
   <section>
-    <div class="eyebrow"><span class="enum">06</span> Live</div>
+    <div class="eyebrow"><span class="enum">07</span> Live</div>
     <h2>What's being remediated &mdash; and how it's decided</h2>
     {% for row in rows %}
       {% set r = row.r %}{% set c = row.cluster %}
@@ -336,6 +415,8 @@ flowchart TD
           <div>{{ cibadge(r.ci_status) }} {{ sbadge(r.status) }}
             <span class="rem-links">{% if r.pr_url %}&middot; <a href="{{ r.pr_url }}">PR</a>{% endif %}{% if r.session_url %} &middot; <a href="{{ r.session_url }}">session</a>{% endif %}</span></div>
         </div>
+
+        {% if r.summary %}<div class="statusnote">{{ r.summary }}</div>{% endif %}
 
         <div class="block">
           <div class="blk-lbl">The flake</div>
@@ -370,6 +451,7 @@ flowchart TD
               {% if res.diff_scan and res.diff_scan.forbidden_patterns %}<span class="fail mono">{{ res.diff_scan.forbidden_patterns|join(', ') }}</span> &mdash; rejected{% else %}<span class="pass">no skip / @flaky / retry / sleep</span>{% endif %}</div>
             {% if res.provenance %}<div class="row"><span class="lab">provenance</span>
               {% if res.provenance.touched_product_code %}<span class="fail">touched product code &rarr; escalate</span>{% else %}<span class="pass">test-side only</span>{% if res.provenance.files_changed %} (<span class="mono">{{ res.provenance.files_changed|join(', ') }}</span>){% endif %}{% endif %}</div>{% endif %}
+            {% if res.seed_sweep_note %}<div class="row"><span class="lab">seed sweep</span> <span style="color:var(--muted)">{{ res.seed_sweep_note }}</span></div>{% endif %}
           </div>
         </div>
         {% endif %}

@@ -39,12 +39,13 @@ def main() -> None:
     env = Environment(loader=FileSystemLoader(str(ROOT / "app" / "templates")))
     html = env.get_template("dashboard.html").render(
         request=None, metrics=db.metrics(), rows=views.remediation_rows(),
-        compare=views.approaches_comparison(), now="snapshot of a live mock run",
+        compare=views.approaches_comparison(), live=None,
+        now="simulated run (mock mode) -- capability demo",
     )
     # Static file: drop the self-refresh.
     html = html.replace('<meta http-equiv="refresh" content="5">',
                         '<!-- auto-refresh disabled in static sample -->')
-    out = ROOT / "docs" / "dashboard-sample.html"
+    out = ROOT / "docs" / "dashboard-demo.html"
     out.write_text(html, encoding="utf-8")
 
     m = db.metrics()
