@@ -11,7 +11,8 @@ import json
 from typing import Any, Dict, List
 
 from app import db
-from app.clusters import get_cluster
+from app.approaches import CAP_LABELS, compare
+from app.clusters import CLUSTERS, get_cluster
 
 
 def _trace(remediation_id: int) -> List[Dict[str, Any]]:
@@ -35,3 +36,10 @@ def remediation_rows() -> List[Dict[str, Any]]:
             "trace": _trace(r.id),
         })
     return rows
+
+
+def approaches_comparison() -> Dict[str, Any]:
+    """Head-to-head of Devin vs the alternatives on one representative cluster,
+    judged by the same validator (see app/approaches.py)."""
+    hero = CLUSTERS[0]
+    return {"cluster": hero, "approaches": compare(hero), "cap_labels": CAP_LABELS}

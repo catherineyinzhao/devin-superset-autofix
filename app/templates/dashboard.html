@@ -92,6 +92,25 @@
     .lp h3{font-size:14.5px;color:var(--ink);margin:0 0 4px;font-weight:700;}
     .lp p{margin:0;font-size:13.5px;color:var(--body);line-height:1.55;}
 
+    /* head-to-head: why an autonomous agent */
+    .vs{display:flex;flex-direction:column;gap:10px;}
+    .vsrow{border:1px solid var(--border);border-radius:11px;padding:14px 18px;}
+    .vsrow.devin{border-color:#bfe3cb;background:#fbfdfb;}
+    .vshead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+    .vlabel{font-weight:700;color:var(--ink);font-size:14.5px;}
+    .vkind{font-size:11px;color:var(--muted);font-family:var(--mono);}
+    .vhead-sp{flex:1;}
+    .vblurb{font-size:13px;color:var(--body);margin-top:7px;line-height:1.5;}
+    .matrix{margin-top:28px;}
+    .matrix table{width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+    .matrix th,.matrix td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:12.5px;text-align:center;}
+    .matrix th{background:var(--surface);color:var(--faint);font-size:10px;text-transform:uppercase;letter-spacing:.04em;font-weight:700;}
+    .matrix th:first-child,.matrix td:first-child{text-align:left;}
+    .matrix tbody tr:last-child td{border-bottom:none;}
+    .matrix tr.devin td{background:#f3faf5;}
+    .matrix .nm{font-weight:600;color:var(--ink);}
+    .yes{color:var(--green);font-weight:700;} .no{color:var(--faint);} .pt{color:var(--amber);font-weight:700;}
+
     /* steps */
     .steps{display:grid;grid-template-columns:1fr 1fr;gap:28px 44px;}
     .step{display:flex;gap:16px;}
@@ -277,6 +296,50 @@ flowchart TD
           credited only on independently-verified fixes</b> &mdash; the validator is the quality gate that a merge
           alone isn't.</p></div></div>
     </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Why an autonomous agent</div>
+    <h2>Cheaper alternatives, judged by the same validator</h2>
+    <p class="lead2">An org has options short of Devin. The value of an independent bar is that it judges them
+      all the same way. Here is what each does to the <code>{{ compare.cluster.id }}</code> cluster, and the
+      verdict the validator returns &mdash; <b>only the autonomous agent clears it</b>.</p>
+    <div class="vs">
+      {% for a in compare.approaches %}
+      <div class="vsrow {{ 'devin' if a.is_devin else '' }}">
+        <div class="vshead">
+          <span class="vlabel">{{ a.label }}</span><span class="vkind">{{ a.kind }}</span>
+          <span class="vhead-sp"></span>
+          {%- set v = a.verdict -%}
+          {% if v=='stabilized' %}<span class="badge b-green">stabilized</span>
+          {% elif v=='cheat_detected' %}<span class="badge b-red">cheat detected &mdash; rejected</span>
+          {% elif v=='still_flaky' %}<span class="badge b-amber">still flaky</span>
+          {% elif v=='cannot_attempt' %}<span class="badge b-grey">cannot even attempt</span>
+          {% else %}<span class="badge b-grey">{{ v }}</span>{% endif %}
+        </div>
+        <div class="vblurb">{{ a.blurb }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="matrix">
+      <table>
+        <thead><tr><th>Approach</th>{% for k, lbl in compare.cap_labels %}<th>{{ lbl }}</th>{% endfor %}</tr></thead>
+        <tbody>
+        {% for a in compare.approaches %}
+          <tr class="{{ 'devin' if a.is_devin else '' }}">
+            <td class="nm">{{ a.label.split(' (')[0] }}</td>
+            {% for k, lbl in compare.cap_labels %}{% set c = a.caps[k] %}
+              <td>{% if c == true %}<span class="yes">&#10003;</span>{% elif c == 'partial' %}<span class="pt">~</span>{% elif c == 'na' %}<span class="no">&mdash;</span>{% else %}<span class="no">&#10007;</span>{% endif %}</td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="lead2" style="margin-top:18px;font-size:14px;">Every prior submission we surveyed stops at one of
+      these rows &mdash; open a PR, let CI (or the agent's own word) be the bar. Devin is the only approach that
+      fills the column an independent verifier actually checks.</p>
   </section>
 
   <section>

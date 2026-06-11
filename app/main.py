@@ -134,6 +134,7 @@ async def dashboard(request: Request):
         "request": request,
         "metrics": db.metrics(),
         "rows": views.remediation_rows(),
+        "compare": views.approaches_comparison(),
         "now": "updated " + db.now_iso(),
     })
 

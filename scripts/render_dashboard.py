@@ -39,7 +39,7 @@ def main() -> None:
     env = Environment(loader=FileSystemLoader(str(ROOT / "app" / "templates")))
     html = env.get_template("dashboard.html").render(
         request=None, metrics=db.metrics(), rows=views.remediation_rows(),
-        now="snapshot of a live mock run",
+        compare=views.approaches_comparison(), now="snapshot of a live mock run",
     )
     # Static file: drop the self-refresh.
     html = html.replace('<meta http-equiv="refresh" content="5">',
