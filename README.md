@@ -45,6 +45,9 @@ The headline contrast, on the dashboard: **GitHub CI says `green`, our validator
 dependency-bump pipeline can produce that beat, because a version pin has no hidden failure
 mode to expose.
 
+> **Architecture + how it functions in practice:** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+> (renders the harness diagram on GitHub and walks one real remediation -- PR #6 -- end to end).
+
 ## Current results
 
 - **1 live, independently-validated PR**: [catherineyinzhao/superset#6](https://github.com/catherineyinzhao/superset/pull/6)
