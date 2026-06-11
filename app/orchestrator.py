@@ -15,7 +15,7 @@ from __future__ import annotations
 import os
 from typing import Optional
 
-from app import db, events
+from app import db, events, memory
 from app.clusters import Cluster, get_cluster
 from app.config import config
 from app.devin_client import devin
@@ -200,6 +200,8 @@ def _validate_and_route(rem: Remediation, pr_url: str, head_sha: Optional[str],
 
     if v.verdict == Verdict.STABILIZED:
         _finish(rem, Status.STABILIZED, v.summary)
+        memory.record(cluster.id, cluster.root_cause_class, cluster.root_cause,
+                      cluster.leaker, cluster.fix_note, v.summary)
         events.log(events.Event.STABILIZED, "PR ready for human review",
                    remediation_id=rem.id, cluster_id=rem.cluster_id, pr_url=pr_url)
         if rem.issue_number:

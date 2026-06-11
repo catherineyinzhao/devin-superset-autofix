@@ -13,7 +13,8 @@ from __future__ import annotations
 import json
 import sys
 
-from app import db, events
+from app import db, events, memory
+from app.clusters import get_cluster
 from app.config import config
 from app.models import Status, Verdict
 
@@ -52,7 +53,11 @@ def main() -> None:
                ci_status="green", seeds_run=runs)
     events.log(events.Event.STABILIZED, "PR ready for human review (verified locally)",
                remediation_id=rem.id, cluster_id=CLUSTER)
-    print(f"dataset-import -> STABILIZED with real evidence ({runs} verification runs, reproduced pre-fix under {bad})")
+    c = get_cluster(CLUSTER)
+    wrote = memory.record(c.id, c.root_cause_class, c.root_cause, c.leaker, c.fix_note,
+                          f"local seed-sweep: reproduced pre-fix under {bad}; 0/{runs} on the PR branch")
+    print(f"dataset-import -> STABILIZED with real evidence ({runs} runs, reproduced pre-fix under {bad})"
+          + ("; recorded to engineering memory" if wrote else ""))
 
 
 if __name__ == "__main__":

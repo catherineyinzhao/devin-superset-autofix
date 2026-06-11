@@ -14,6 +14,11 @@ Run:
 """
 from __future__ import annotations
 
+import os
+# This is the mock capability demo -- don't let its stabilizations pollute the
+# real engineering-memory artifact (which records only genuinely-verified fixes).
+os.environ.setdefault("ENGINEERING_MEMORY_PATH", "/tmp/mem-demo.md")
+
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader

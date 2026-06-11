@@ -16,6 +16,7 @@ from __future__ import annotations
 
 from typing import Optional
 
+from app import memory
 from app.clusters import Cluster
 
 # Passed natively to the Sessions API as `structured_output_schema` so Devin's
@@ -56,6 +57,12 @@ def build_prompt(cluster: Cluster, repo_url: str, issue_number: Optional[int] = 
     issue_ref = f" (closes #{issue_number})" if issue_number else ""
     title = f"[flaky-fix] {cluster.id}: stabilize {cluster.target_count} order-dependent test(s)"
 
+    prior = memory.recall(cluster.root_cause_class, exclude_cluster=cluster.id)
+    prior_block = (
+        "\n## Prior incidents in this codebase (engineering memory)\n"
+        "Same flake-class fixes that an earlier session already verified -- reuse the pattern:\n"
+        f"{prior}\n" if prior else "")
+
     return f"""## Role
 You are an autonomous software engineer fixing a cluster of FLAKY tests in a fork
 of Apache Superset. These are order-dependence / shared-state flakes: they pass
@@ -74,6 +81,7 @@ These pass under default order and fail only under reorder. Known-bad seeds
 
 Diagnosis to CONFIRM by reproducing (do not trust it blindly):
 {cluster.root_cause}
+{prior_block}
 
 ## Step 1 -- Reproduce (CRITICAL: must be at SUITE scope)
 These flakes do NOT reproduce when the file is run alone -- the leaking

@@ -2,6 +2,9 @@
 
 Run: python -m scripts._smoke_orchestrator
 """
+import os
+os.environ.setdefault("ENGINEERING_MEMORY_PATH", "/tmp/mem-smoke.md")
+
 from app import db
 from app.clusters import CLUSTERS
 from app.models import Status
