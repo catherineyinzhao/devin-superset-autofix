@@ -57,6 +57,23 @@
     .out.good{border-color:#bfe3cb;} .out.good .h{color:var(--green);}
     .out.warn{border-color:#ecd6b3;} .out.warn .h{color:var(--amber);}
 
+    /* richer staged flow diagram */
+    .flow{margin-top:4px;}
+    .fstage{border:1px solid var(--border2);border-radius:12px;padding:14px 18px;background:#fff;}
+    .fstage.val{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink);}
+    .fl{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:7px;}
+    .fstage.val .fl{color:var(--green);}
+    .fb{font-size:13.5px;color:var(--body);line-height:1.5;} .fb b{color:var(--ink);}
+    .fdown{text-align:center;color:var(--faint);font-size:16px;line-height:1;padding:6px 0;}
+    .fdown .l{font-family:var(--mono);font-size:11px;color:var(--faint);margin-left:6px;}
+    .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px;}
+    .chip{flex:1;min-width:130px;border:1px solid var(--border);border-radius:9px;padding:8px 11px;background:var(--surface);}
+    .chip .ct{display:block;font-weight:700;color:var(--ink);font-size:12.5px;}
+    .chip .cs{display:block;color:var(--muted);font-size:11px;margin-top:2px;}
+    .cnote{font-size:12px;color:var(--muted);margin-top:10px;font-family:var(--mono);line-height:1.5;}
+    .branch3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+    .loopnote{font-size:11.5px;font-family:var(--mono);color:var(--amber);margin-top:11px;line-height:1.5;}
+
     /* steps */
     .steps{display:grid;grid-template-columns:1fr 1fr;gap:28px 44px;}
     .step{display:flex;gap:16px;}
@@ -143,54 +160,69 @@
     <p class="lead2">One Devin agent does the engineering (per Cognition's own "don't build multi-agents":
       single-threaded, full context). The trust layer around it is <b>deterministic</b> &mdash; execution and
       static analysis, <b>not another LLM judge</b> that could share the agent's blind spots.</p>
-    <div class="arch">
-      <div class="node">
-        <span class="nt">GitHub issue</span><span class="role">event</span>
-        <div class="d">one per flaky cluster, label <code>devin-fix</code> &mdash; or a scheduled scan</div>
+    <div class="flow">
+      <div class="fstage"><span class="fl">Detect</span>
+        <div class="fb">A scheduled scan re-runs the suite under many seed orderings (<code>pytest-randomly</code>);
+          tests that pass-sometimes/fail-sometimes are flaky. Here: <b>9 flaky tests &rarr; 5 root-cause clusters</b>,
+          each filed as a <code>devin-fix</code> issue.</div></div>
+      <div class="fdown">&darr;</div>
+      <div class="fstage"><span class="fl">Dispatch</span>
+        <div class="fb">The orchestrator is idempotent and <b>fans out across clusters in parallel</b>, bounded by a
+          concurrency cap (excess queues) so a large scan can't blow the ACU budget.
+          <div class="chips">
+            <div class="chip"><span class="ct">Devin session</span><span class="cs">1 agent, full context</span></div>
+            <div class="chip"><span class="ct">Devin session</span><span class="cs">in parallel...</span></div>
+            <div class="chip"><span class="ct">Devin session</span><span class="cs">...independent clusters</span></div>
+          </div>
+          <div class="cnote">each carries Playbook &middot; Knowledge &middot; Machine Snapshot &nbsp;|&nbsp; reproduce under bad seeds &rarr; bisect the leaking predecessor &rarr; fix root cause &rarr; open PR</div>
+        </div></div>
+      <div class="fdown">&darr;<span class="l">PRs open; CI runs once, default order &rarr; reports green</span></div>
+      <div class="fstage val"><span class="fl">Verify &middot; independent, deterministic (not an agent)</span>
+        <div class="fb">Re-derived from a <b>fresh clone of each PR branch</b> &mdash; never CI, never the agent's word. Four gates:
+          <div class="chips">
+            <div class="chip"><span class="ct">seed sweep</span><span class="cs">known-bad + K fresh orderings; 0 target failures</span></div>
+            <div class="chip"><span class="ct">anti-cheat</span><span class="cs">reject skip/@flaky/retry/sleep</span></div>
+            <div class="chip"><span class="ct">provenance</span><span class="cs">test-side only, else escalate</span></div>
+            <div class="chip"><span class="ct">neighbor</span><span class="cs">no new failures elsewhere</span></div>
+          </div>
+        </div></div>
+      <div class="fdown">&darr;<span class="l">verdict</span></div>
+      <div class="fstage"><span class="fl">Route</span>
+        <div class="branch3">
+          <div class="out good"><div class="h">stabilized</div><div class="s">&rarr; ready for human review</div></div>
+          <div class="out warn"><div class="h">cheat / still-flaky / regressed</div><div class="s">&#8635; feedback loop</div></div>
+          <div class="out warn"><div class="h">product bug</div><div class="s">&rarr; escalate to a human</div></div>
+        </div>
+        <div class="loopnote">&#8635; the feedback loop returns the validator's <b>exact evidence</b> (the seed that still fails, the forbidden pattern) to the <b>same</b> Devin session &mdash; bounded to a few rounds, after which a circuit-breaker escalates rather than burn ACU.</div>
       </div>
-      <div class="conn">&darr;</div>
-      <div class="node">
-        <span class="nt">Devin session</span><span class="role">1 agent &middot; full context</span>
-        <div class="d">carries a <b>Playbook</b> &middot; <b>Knowledge</b> &middot; <b>Machine Snapshot</b><br>
-          reproduce under bad seeds &rarr; bisect the leaking test &rarr; fix the root cause</div>
-      </div>
-      <div class="conn">&darr;<span class="lbl">opens PR</span></div>
-      <div class="node">
-        <span class="nt">Pull request</span>
-        <div class="d">CI runs once, in the default order &mdash; and reports green</div>
-      </div>
-      <div class="conn">&darr;</div>
-      <div class="node val">
-        <span class="nt">Independent validator</span><span class="role det">deterministic &middot; not an agent</span>
-        <div class="d">re-run targets across <b>known-bad + fresh</b> seed orderings &middot;
-          <b>anti-cheat</b> diff scan &middot; <b>provenance</b> (test-side only)</div>
-        <span class="never">never trusts CI or the agent's self-report</span>
-      </div>
-      <div class="conn">&darr;<span class="lbl">verdict</span></div>
-      <div class="branch">
-        <div class="out good"><div class="h">stabilized</div><div class="s">&rarr; ready for review</div></div>
-        <div class="out warn"><div class="h">cheat / still-flaky</div><div class="s">&#8635; feedback to Devin (bounded)</div></div>
-        <div class="out warn"><div class="h">product bug</div><div class="s">&rarr; escalate to a human</div></div>
-      </div>
+      <div class="fdown">&darr;</div>
+      <div class="fstage"><span class="fl">Observe</span>
+        <div class="fb">Live dashboard &middot; the GitHub issue tracker as a status board &middot; the validator's report posted on the PR &middot; metrics (eng-hours credited <b>only on verified fixes</b>).</div></div>
     </div>
   </section>
 
   <section>
-    <div class="eyebrow">In practice</div>
-    <h2>How a single remediation runs</h2>
+    <div class="eyebrow">Context &amp; throughput</div>
+    <h2>The value is in the diagnosis &mdash; and it parallelizes</h2>
+    <p class="lead2">Cognition's <a href="https://cognition.ai/blog/ai-productivity">Estimating AI Engineering
+      Productivity</a> finds the real effort in a session is <b>investigation, diagnosis, and setup</b> &mdash;
+      not lines of code &mdash; and that <b>context</b> is what makes that work land. Both shape this system.</p>
     <div class="steps">
-      <div class="step"><div class="idx">01</div><div><h3>Detect by re-ordering</h3>
-        <p>Run the suite under many random seed orderings (<code>pytest-randomly</code>). A test that passes
-          sometimes and fails sometimes is flaky because an earlier test leaked shared state.</p></div></div>
-      <div class="step"><div class="idx">02</div><div><h3>Reproduce &amp; bisect</h3>
-        <p>Devin reproduces under the known-bad seeds, then bisects to the <b>specific predecessor</b> that
-          leaks the state, and fixes the isolation at its root.</p></div></div>
-      <div class="step"><div class="idx">03</div><div><h3>Verify independently</h3>
-        <p>From a fresh clone, re-run the targets across the bad seeds + fresh seeds, scan the diff for
-          skip/@flaky/retry, and confirm only test code changed.</p></div></div>
-      <div class="step"><div class="idx">04</div><div><h3>Route on the verdict</h3>
-        <p>Stable &rarr; ready for review. Cheat or still-flaky &rarr; the exact evidence goes back to Devin
-          and it retries. Product bug &rarr; escalate, never mask.</p></div></div>
+      <div class="step"><div class="idx">&rarr;</div><div><h3>Context, not code volume</h3>
+        <p>A flaky fix is often a two-line <code>try/finally</code>; the value is the diagnosis behind it. So each
+          session is handed the context that diagnosis needs up front &mdash; the failing seeds, the suspected
+          leaker, a <b>Playbook</b>, a <b>Knowledge</b> base of past incidents, and a <b>Machine Snapshot</b> of
+          the env so it never re-pays setup (the cost that dominated our first runs).</p></div></div>
+      <div class="step"><div class="idx">&rarr;</div><div><h3>Parallel, but not multi-agent</h3>
+        <p>Clusters are independent, so the orchestrator runs them <b>in parallel</b> for throughput &mdash;
+          bounded by a concurrency cap for cost. But each unit is still a <b>single-threaded agent</b> (per
+          <a href="https://cognition.ai/blog/dont-build-multi-agents">Don't Build Multi-Agents</a>): parallelism
+          across tasks, never sub-agents making conflicting decisions within one.</p></div></div>
+      <div class="step"><div class="idx">&rarr;</div><div><h3>Hours, credited conservatively</h3>
+        <p>Output is measured the way orgs already value engineering &mdash; in hours. That same post notes
+          merged-PR metrics miss post-merge defects and "hours don't account for quality," so here <b>hours are
+          credited only on independently-verified fixes</b> &mdash; the validator is the quality gate that a merge
+          alone isn't.</p></div></div>
     </div>
   </section>
 
