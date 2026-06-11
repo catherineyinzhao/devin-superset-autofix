@@ -3,7 +3,6 @@
 # Then open http://localhost:8000/dashboard and POST http://localhost:8000/trigger/scan
 services:
   autofix:
-    env_file: []
     environment:
       DEVIN_MOCK: "1"
       DEVIN_API_KEY: demo

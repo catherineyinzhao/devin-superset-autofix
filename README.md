@@ -52,7 +52,12 @@ mode to expose.
   mutated `app.config` allow-list via `try/finally`). The validator's anti-cheat + provenance
   gates ran against the live PR diff and passed (test-side only, no forbidden patterns).
 - **5 issues filed** in the fork ([#1-#5](https://github.com/catherineyinzhao/superset/issues)),
-  one per real flaky cluster.
+  one per real flaky cluster -- now a **live status board**: each carries status labels
+  (`status:pr-open` on #2, `status:devin-finished`/`status:needs-human` on the push-blocked ones)
+  and a comment linking its Devin session. The validator's **report is posted on PR #6**.
+- **Live webhook path**: `docker compose --profile webhook up` exposes `/webhook/github` via ngrok;
+  register a GitHub `issues` webhook at the public URL to dispatch on `devin-fix` labeling.
+  (The scheduled `/trigger/scan` path needs no tunnel.)
 - **The full pipeline + every verdict** (`stabilized`, `cheat_detected`, `still_flaky`,
   `needs_human_review`) is demonstrated deterministically in **mock mode** -- the recommended
   path for the recorded demo (no keys, no spend).

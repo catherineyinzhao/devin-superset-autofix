@@ -23,6 +23,10 @@ class Cluster:
     known_bad_seeds: List[int]
     root_cause: str
     prompt_file: str
+    # Devin Playbook key for this flake class (-> a reusable remediation
+    # procedure). All current clusters are order-dependence/shared-state, so they
+    # share the "state-isolation" playbook; resolved to a real id via env.
+    playbook: str = "state-isolation"
     labels: List[str] = field(default_factory=lambda: ["devin-fix"])
     # Estimated senior-engineer hours to diagnose + fix this cluster by hand.
     # Drives the "engineer-hours saved" ROI metric on the dashboard.
