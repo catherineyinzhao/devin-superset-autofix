@@ -248,38 +248,21 @@
 
     <pre class="mermaid">
 flowchart TD
-  subgraph Detect
-    direction LR
-    scan["live scan (4 classes)"] --> issues["devin-fix issues"]
-  end
-  issues --> disp{"under ACU cap?"}
-  disp -->|no| queued["QUEUED"]
-  disp -->|"yes (idempotent)"| sess["Devin session<br/>+ Playbook/Knowledge/Snapshot"]
-  queued -. promote .-> sess
-  poller["poller: poll_once()"] -. "GET /session" .-> sess
-  sess -->|fix + PR| cls{"issue class?"}
-  cls -->|flaky| vflaky["flaky gates:<br/>seed-sweep / anti-cheat / provenance / neighbor"]
-  cls -->|"security / quality / dependency"| vstatic["static gates:<br/>pattern removed / no #noqa / re-scan"]
-  vflaky --> verdict{"verdict"}
-  vstatic --> verdict
-  verdict -->|stabilized| amerge{"auto-merge<br/>policy?"}
-  amerge -->|pass| merged(["merged"])
-  amerge -->|hold| review(["human review"])
-  verdict -->|"cheat / still-flaky / regressed"| fb["feedback:<br/>exact evidence"]
-  fb -->|rounds left| sess
-  fb -->|exhausted| brk(["circuit breaker"])
+  scan["Scan -> devin-fix issues<br/>flaky / security / code-quality / dependency"] --> orch["Orchestrator<br/>idempotent, bounded concurrency, attaches primitives"]
+  orch --> sess["Devin session (1 agent) -> PR"]
+  poller["poller"] -. poll .-> sess
+  sess --> val["Independent validator (fresh clone), gates by class:<br/>flaky = seed-sweep; static = pattern removed; + anti-cheat / provenance"]
+  val --> verdict{"verdict"}
+  verdict -->|stabilized| done(["auto-merge (policy) / human review"])
+  verdict -->|"cheat / still-flaky / regressed"| sess
   verdict -->|"product bug"| esc(["escalate"])
-  merged --> mem["engineering memory"]
-  review --> mem
+  done --> mem["engineering memory"]
   mem -. "Knowledge -> future sessions" .-> sess
-  merged --> obs(["observability"])
 
-  classDef gate fill:#ffffff,stroke:#16140f,stroke-width:2px,color:#16140f;
   classDef good fill:#e7f1ea,stroke:#1f7a43,color:#1f7a43;
   classDef warn fill:#f3ead8,stroke:#945a0c,color:#945a0c;
-  class vflaky,vstatic gate;
-  class merged,review,obs good;
-  class esc,brk warn;
+  class done good;
+  class esc warn;
     </pre>
     <div class="graph-fallback">The back-edge (verdict &rarr; rounds left? &rarr; session) is the recursion: a rejected PR loops back to the same session with concrete evidence.</div>
 
