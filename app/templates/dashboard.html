@@ -48,7 +48,7 @@
 
     /* mermaid harness graph */
     .mermaid{display:flex;justify-content:center;margin:8px 0 4px;min-height:40px;}
-    .mermaid svg{max-width:100%;max-height:62vh;height:auto;}
+    .mermaid svg{max-width:100%;height:auto;}
     .graph-fallback{font-family:var(--mono);font-size:11px;color:var(--faint);text-align:center;margin-top:8px;line-height:1.5;}
 
     .lpts{display:grid;grid-template-columns:1fr 1fr;gap:24px 44px;margin-top:34px;}
@@ -247,19 +247,52 @@
 
     <pre class="mermaid">
 flowchart TD
-  scan["Scan: flaky / security / code-quality / dependency findings -> devin-fix issues"] --> orch["Orchestrator: idempotent, bounded concurrency"]
-  orch -->|"fan out, parallel"| sess["Devin session: 1 agent + Playbook/Knowledge/Snapshot -> PR"]
-  sess --> val["Independent validator (fresh clone): seed-sweep / anti-cheat / provenance / neighbor"]
-  val --> verdict{"verdict"}
-  verdict -->|"stabilized"| done(["ready for review / auto-merge"])
+  subgraph Detect
+    scan["Live scan (pluggable rule registry)"] --> findings["findings across 4 classes:<br/>flaky / security / code-quality / dependency"]
+    findings --> issues["one GitHub issue per finding (label: devin-fix)"]
+  end
+  issues -->|"webhook issues.labeled / scheduled scan"| disp
+
+  subgraph Orchestrate
+    disp["dispatch() -- idempotent key cluster:repo"] --> capq{"under concurrency cap?"}
+    capq -->|no| queued["QUEUED"]
+    capq -->|yes| prim["attach Devin primitives:<br/>Playbook / Knowledge / Snapshot / structured-output / session-secrets"]
+    queued -. "poller promotes as capacity frees" .-> prim
+  end
+
+  prim --> sess["Devin session (1 agent, full context)"]
+  sess -->|"reproduce -> bisect leaker -> fix root (flaky)<br/>or remove the flagged pattern (static)"| pr["Pull request -> CI runs once, green"]
+  poller["background poller: poll_once()<br/>running / blocked / finished"] -. "GET /v1/session/id" .-> sess
+
+  pr --> cls{"issue class?"}
+  cls -->|flaky| vflaky["flaky gates (fresh clone):<br/>seed-sweep known-bad + fresh / anti-cheat / provenance / neighbor"]
+  cls -->|"security / code-quality / dependency"| vstatic["static gates (fresh clone):<br/>flagged pattern removed (not re-suppressed) / no # noqa-# nosec / re-scan"]
+  vflaky --> verdict{"verdict"}
+  vstatic --> verdict
+
+  verdict -->|stabilized| amerge{"auto-merge policy?"}
+  amerge -->|pass| merged(["merged"])
+  amerge -->|hold| review(["ready for human review"])
+  verdict -->|"cheat / still-flaky / regressed"| fb["feedback: exact evidence<br/>(failing seed / forbidden pattern)"]
+  fb -->|"rounds left"| sess
+  fb -->|"rounds exhausted"| brk(["circuit breaker -> escalate"])
   verdict -->|"product bug"| esc(["escalate to a human"])
-  verdict -->|"cheat / still-flaky / regressed (bounded, then circuit-breaker)"| sess
-  classDef val fill:#ffffff,stroke:#16140f,stroke-width:2px,color:#16140f;
+  verdict -->|"env failure"| inc(["inconclusive -> retry"])
+
+  merged --> mem["engineering memory:<br/>record root-cause -> fix pattern"]
+  review --> mem
+  mem -. "injected as Knowledge into future same-class sessions" .-> prim
+  merged --> obs["observability:<br/>dashboard / metrics / issue board / PR report"]
+  review --> obs
+  esc --> obs
+  brk --> obs
+
+  classDef gate fill:#ffffff,stroke:#16140f,stroke-width:2px,color:#16140f;
   classDef good fill:#e7f1ea,stroke:#1f7a43,color:#1f7a43;
   classDef warn fill:#f3ead8,stroke:#945a0c,color:#945a0c;
-  class val val;
-  class done good;
-  class esc warn;
+  class vflaky,vstatic gate;
+  class merged,review good;
+  class esc,brk,inc warn;
     </pre>
     <div class="graph-fallback">The back-edge (verdict &rarr; rounds left? &rarr; session) is the recursion: a rejected PR loops back to the same session with concrete evidence.</div>
 
