@@ -165,8 +165,8 @@ scripts/
 
 ## Design rationale (research grounding)
 
-Every design choice answers a *documented* agent failure mode -- and each is one the prior
-submissions walked into by assuming agent output is trustworthy. Full treatment with citations in
+Every design choice answers a *documented* agent failure mode -- the kind that follows from
+assuming agent output is trustworthy. Full treatment with citations in
 [`docs/DESIGN_RATIONALE.md`](docs/DESIGN_RATIONALE.md); in brief:
 
 - **Adversarial verification** -- cheat-fixes are reward hacking (Goodhart; Amodei et al. 2016).

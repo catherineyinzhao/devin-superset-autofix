@@ -1,6 +1,6 @@
 # Statistical Validator Contract
 
-The validator is the system's differentiator. Every other submission's "did it work?" is
+The validator is the system's differentiator. The naive answer to "did it work?" is
 *CI-green-once*. Ours is **statistical and independent**: we re-run the formerly-flaky tests many
 times across many seeds, confirm they no longer flake, confirm nothing else regressed, and reject
 fixes that cheat. **The validator never trusts Devin's self-report** — it re-derives the verdict

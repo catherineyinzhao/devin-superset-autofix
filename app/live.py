@@ -27,18 +27,30 @@ def _real(rem) -> bool:
 
 
 def strip() -> List[Dict[str, Any]]:
-    """Current status of every real Devin session, pulled live from the API."""
+    """Current status of every real Devin session.
+
+    Source of truth is the verification pipeline (the DB), with the Devin API
+    consulted live only for sessions still in flight. A row that has reached a
+    terminal pipeline state -- stabilized, merged, escalated -- shows that state
+    directly (the Devin session object may still read 'working' long after we've
+    verified and merged its PR). For in-flight rows we pull the live Devin status,
+    and if the API is unreachable (e.g. trial credits exhausted -> 403) we fall
+    back to the last-known pipeline status rather than a misleading 'unknown'.
+    """
     out: List[Dict[str, Any]] = []
     for r in db.list_remediations():
         if not _real(r):
             continue
-        try:
-            snap = devin.get_session(r.session_id)
-            status, pr = snap["status"], (snap.get("pr_url") or r.pr_url)
-        except Exception:
-            status, pr = "unknown", r.pr_url
+        merged = bool(r.summary and "Auto-merged" in r.summary)
+        if merged or r.status in Status.TERMINAL:
+            status = "merged" if merged else r.status
+        else:
+            try:
+                status = devin.get_session(r.session_id)["status"]
+            except Exception:
+                status = r.status or "unknown"
         out.append({"cluster_id": r.cluster_id, "session_url": r.session_url,
-                    "status": status, "pr_url": pr})
+                    "status": status, "pr_url": r.pr_url})
     return out
 
 
@@ -51,8 +63,11 @@ def sync() -> int:
             continue
         if r.status in Status.TERMINAL:
             continue  # terminal (stabilized / escalated / failed) -- don't churn it on a volatile live pull
+        try:
+            snap = devin.get_session(r.session_id)
+        except Exception:
+            continue  # API unreachable (e.g. credits exhausted -> 403): keep last-known DB state, don't clobber
         n += 1
-        snap = devin.get_session(r.session_id)
         status, pr = snap["status"], (snap.get("pr_url") or r.pr_url)
 
         if pr:  # a PR exists (session may still be working/blocked) -> verify it

@@ -28,7 +28,7 @@ def main() -> None:
     html = env.get_template("dashboard.html").render(
         request=None, metrics=db.metrics(), rows=views.remediation_rows(),
         compare=views.approaches_comparison(), live=live.strip(), memory=memory.entries(),
-        now="live pull from the Devin API",
+        now="live verification-pipeline state",
     )
     html = html.replace('<meta http-equiv="refresh" content="5">',
                         '<!-- auto-refresh disabled in static sample -->')

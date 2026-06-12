@@ -1,4 +1,4 @@
-# Design rationale: what the agent-harness research says, and why the field got it wrong
+# Design rationale: what the agent-harness research says, and how this harness applies it
 
 This system is a *harness*, not a model. The recurring finding across recent agentic-coding
 research is that capability at the task level comes as much from the **scaffold** -- the tools,
@@ -6,8 +6,8 @@ the verification, the control flow around a stochastic agent -- as from the base
 agent-computer-interface argument in SWE-agent, Yang et al. 2024; the OpenHands/OpenDevin line).
 So the right question for this challenge is not "can Devin write the fix" (it can) but "what
 harness makes Devin's output *trustable at scale*." Every design choice below is an answer to a
-specific, documented failure mode -- and each is a failure the seven prior submissions walked
-straight into because they treated "CI green + the agent's summary" as ground truth.
+specific, documented failure mode -- the kind that follows from treating "CI green + the agent's
+summary" as ground truth.
 
 ---
 
@@ -102,8 +102,8 @@ do not fabricate a verdict). Escalation is a feature, not a fallback.
 ## 7. Cost is a first-class control, not an afterthought.
 
 **Observed firsthand.** Five parallel full-suite verifications exhausted a $20 ACU budget in an
-afternoon -- statistical verification has real compute cost. (riankawahara's submission anticipated
-this with a circuit breaker; most did not.)
+afternoon -- statistical verification has real compute cost, so cost control belongs in the design
+from the start, not bolted on later.
 
 **Our choice.** `max_active_sessions` bounds concurrency: excess dispatches are QUEUED and promoted
 by the poller as capacity frees, so a large scan cannot fan out into simultaneous full-suite runs.
@@ -113,9 +113,9 @@ module-scoped sweeps once discovery has pinned the leaker set.
 
 ---
 
-## The field, mapped to the research it ignored
+## Failure modes, mapped to the research
 
-| Prior submission's implicit assumption | The research that refutes it | What we do instead |
+| A common implicit assumption | The research that refutes it | What we do instead |
 |---|---|---|
 | CI-green == correct | Goodhart; reward hacking (Amodei 2016) | independent statistical re-run; assume the proxy is gamed |
 | The agent's self-report is trustworthy | overconfidence; LLM self-preference (Panickssery 2024) | never trust self-report; re-derive from a clean checkout |
@@ -125,9 +125,9 @@ module-scoped sweeps once discovery has pinned the leaker set.
 | Always produce a fix | selective prediction / defer | escalate product bugs; `inconclusive` over fabrication |
 | Fan out freely | (cost) circuit-breaker pattern | bounded concurrency + per-session ACU cap |
 
-The throughline: **the prior submissions are generators bolted to weak verifiers, built on the
-unexamined assumption that agent output is trustworthy.** The harness research says that assumption
-is wrong in seven specific, named ways. This system is the verifier those findings imply.
+The throughline: **a generator bolted to a weak verifier is only as trustworthy as the unexamined
+assumption that agent output is correct.** The harness research says that assumption is wrong in
+several specific, documented ways. This system is the verifier those findings imply.
 
 > Citations name representative works for each idea; the argument rests on the well-established
 > *concepts* (reward hacking, generator-verifier gap, LLM-judge bias, externally-grounded

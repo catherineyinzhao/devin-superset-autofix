@@ -5,7 +5,7 @@ fix-pattern as a durable note. New Devin sessions are then given the prior notes
 of the *same flake-class* as context, so the agent starts from accumulated
 diagnoses instead of a blank slate -- the context-engineering loop. In
 production this is a Devin Knowledge base injected via `knowledge_ids`; here it
-is a human-readable markdown file that doubles as a submission artifact.
+is a human-readable markdown file that doubles as a readable audit artifact.
 """
 from __future__ import annotations
 
