@@ -475,8 +475,9 @@ flowchart TD
       <div class="rem {{ 'dis' if dis else '' }}">
         <div class="rem-head">
           <div class="rem-title">{{ r.cluster_id }}</div>
-          <div>{{ cibadge(r.ci_status) }} {{ sbadge(r.status) }}
-            <span class="rem-links">{% if r.pr_url %}&middot; <a href="{{ r.pr_url }}">PR</a>{% endif %}{% if r.session_url %} &middot; <a href="{{ r.session_url }}">session</a>{% endif %}</span></div>
+          {% set merged = r.summary and 'Auto-merged' in r.summary %}
+          <div>{{ cibadge(r.ci_status) }} {{ sbadge(r.status) }}{% if merged %} <span class="badge b-green">merged</span>{% endif %}
+            <span class="rem-links">{% if r.pr_url %}&middot; <a href="{{ r.pr_url }}">PR{% if merged %} (merged){% endif %}</a>{% endif %}{% if r.session_url %} &middot; <a href="{{ r.session_url }}">session</a>{% endif %}</span></div>
         </div>
 
         {% if r.summary %}<div class="statusnote">{{ r.summary }}</div>{% endif %}

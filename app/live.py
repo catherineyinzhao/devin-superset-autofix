@@ -49,8 +49,8 @@ def sync() -> int:
     for r in db.list_remediations():
         if not _real(r):
             continue
-        if r.verdict == Verdict.STABILIZED:
-            continue  # already independently verified (e.g. a real local seed-sweep) -- don't downgrade
+        if r.status in Status.TERMINAL:
+            continue  # terminal (stabilized / escalated / failed) -- don't churn it on a volatile live pull
         n += 1
         snap = devin.get_session(r.session_id)
         status, pr = snap["status"], (snap.get("pr_url") or r.pr_url)
