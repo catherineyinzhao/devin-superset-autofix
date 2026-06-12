@@ -48,8 +48,8 @@
 
     /* mermaid harness graph */
     .mermaid{display:flex;justify-content:center;margin:8px 0 4px;min-height:40px;}
-    .mermaid{overflow-x:auto;}
-    .mermaid svg{max-width:100%;max-height:66vh;height:auto;}
+    .mermaid{overflow-x:auto;margin:8px 0 4px;}
+    .mermaid svg{max-width:760px;width:100%;height:auto;}
     .graph-fallback{font-family:var(--mono);font-size:11px;color:var(--faint);text-align:center;margin-top:8px;line-height:1.5;}
 
     .lpts{display:grid;grid-template-columns:1fr 1fr;gap:24px 44px;margin-top:34px;}
@@ -240,9 +240,9 @@
       static analysis, not another LLM judge that could share the agent's blind spots.</p>
 
     <pre class="mermaid">
-flowchart LR
+flowchart TD
   subgraph Detect
-    direction TB
+    direction LR
     scan["live scan (4 classes)"] --> issues["devin-fix issues"]
   end
   issues --> disp{"under ACU cap?"}
@@ -551,6 +551,11 @@ flowchart LR
   <section>
     <div class="eyebrow"><span class="enum">07</span> Live</div>
     <h2>What's being remediated &mdash; and how it's decided</h2>
+    <p class="lead2" style="font-size:14.5px;">These are the <b>real</b> Devin sessions. <b>1</b> is fixed,
+      independently verified, and <b>merged</b> (PR #6); <b>4</b> have a completed fix but are <b>blocked on the
+      Devin GitHub-app authorization</b> (a one-time setup &mdash; no PR can open until it's granted); <b>3</b>
+      scan findings are <b>queued</b> for the next run. The full multi-class arc (fixed &rarr; verified &rarr;
+      merged across all four classes) is in the capability demo.</p>
     
       
       
