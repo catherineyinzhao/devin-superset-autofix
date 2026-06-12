@@ -234,7 +234,7 @@
 
     <pre class="mermaid">
 flowchart TD
-  scan["Scheduled scan<br/>suite re-run across seed orderings"] --> clusters["9 flaky tests, 5 root-cause clusters<br/>filed as devin-fix issues"]
+  scan["Scheduled scan<br/>suite re-run across seed orderings"] --> clusters["9 flaky tests, 6 root-cause clusters<br/>filed as devin-fix issues"]
   clusters --> orch[["Orchestrator<br/>idempotent, bounded concurrency"]]
   orch -->|"fan out (parallel)"| s1["Devin session A<br/>1 agent + Playbook / Knowledge / Snapshot"]
   orch --> s2["Devin session B"]
@@ -508,7 +508,7 @@ flowchart TD
     <div class="eyebrow"><span class="enum">06</span> Results</div>
     <div class="headline">
       
-      <div class="num">5</div>
+      <div class="num">6</div>
       <div><div class="lead">real Devin sessions taken through the independent verification loop.</div>
         <div class="sub">1 verified stable &middot; 4 routed to a human &middot; every PR re-checked before review. The CI-green-lie contrast surfaces live whenever an attempt tries to hide a flake.</div></div>
       
@@ -516,15 +516,60 @@ flowchart TD
     <div class="cards">
       <div class="card"><div class="n g">1</div><div class="l">Verified stable</div></div>
       <div class="card"><div class="n">4</div><div class="l">Escalated</div></div>
-      <div class="card"><div class="n">0</div><div class="l">In progress</div></div>
+      <div class="card"><div class="n">1</div><div class="l">In progress</div></div>
       <div class="card"><div class="n">20%</div><div class="l">Verified rate</div></div>
-      <div class="card"><div class="n">16.0</div><div class="l">Eng-hrs saved</div></div>
+      <div class="card"><div class="n">17.5</div><div class="l">Eng-hrs saved</div></div>
     </div>
   </section>
 
   <section>
     <div class="eyebrow"><span class="enum">07</span> Live</div>
     <h2>What's being remediated &mdash; and how it's decided</h2>
+    
+      
+      
+      
+      <div class="rem ">
+        <div class="rem-head">
+          <div class="rem-title">yaml-unsafe-load</div>
+          <div><span class="badge b-grey">CI: none</span> <span class="badge b-grey">queued</span>
+            <span class="rem-links"></span></div>
+        </div>
+
+        <div class="statusnote">Found by scan (S506) at superset/examples/utils.py:261; issue filed; awaiting remediation.</div>
+
+        
+        <div class="block">
+          <div class="blk-lbl">The finding (from a live source scan)</div>
+          <div class="facts">
+            <div class="k">Location</div><div class="v mono">superset/examples/utils.py:261</div>
+            <div class="k">Rule</div><div class="v mono">S506 unsafe yaml.load with Loader=yaml.Loader (suppressed by # noqa: S506)</div>
+            <div class="k">Risk</div><div class="v">superset/examples/utils.py calls yaml.load(..., Loader=yaml.Loader) with a '# noqa: S506' that suppresses the bandit warning. yaml.Loader allows arbitrary object construction -- untrusted input can execute code. The noqa masks a real risk.</div>
+          </div>
+        </div>
+        <div class="block">
+          <div class="blk-lbl">Remediation &mdash; what Devin did</div>
+          <div class="facts" style="margin-bottom:12px;">
+            <div class="k">Fix</div><div class="v">replace yaml.load(..., Loader=yaml.Loader) with yaml.safe_load(...) and remove the # noqa: S506</div>
+          </div>
+          <pre class="code"><span class="del">-    metadata = yaml.load(contents.get(METADATA_FILE_NAME, '{}'), Loader=yaml.Loader)  # noqa: S506</span>
+<span class="add">+    metadata = yaml.safe_load(contents.get(METADATA_FILE_NAME, '{}'))</span>
+</pre>
+        </div>
+        
+
+        
+
+        
+
+        <div class="block">
+          <div class="blk-lbl">Decision trace</div>
+          <div class="trace">
+          <div class="t b"><span class="dot"></span><span class="tk">issue created</span><span class="tm">filed issue for yaml-unsafe-load</span></div>
+          
+          </div>
+        </div>
+      </div>
     
       
       
@@ -538,6 +583,7 @@ flowchart TD
 
         <div class="statusnote">Devin finished a fix but could not open a PR (push blocked, HTTP 403) -- awaiting Devin GitHub-app authorization on the fork.</div>
 
+        
         <div class="block">
           <div class="blk-lbl">The flake</div>
           <div class="facts">
@@ -561,6 +607,7 @@ flowchart TD
 <span class=""># test would mask a real bug.</span>
 </pre>
         </div>
+        
 
         
 
@@ -587,6 +634,7 @@ flowchart TD
 
         <div class="statusnote">Devin finished a fix but could not open a PR (push blocked, HTTP 403) -- awaiting Devin GitHub-app authorization on the fork.</div>
 
+        
         <div class="block">
           <div class="blk-lbl">The flake</div>
           <div class="facts">
@@ -611,6 +659,7 @@ flowchart TD
 <span class="">    app.extensions['csrf']._exempt_blueprints = before</span>
 </pre>
         </div>
+        
 
         
 
@@ -637,6 +686,7 @@ flowchart TD
 
         <div class="statusnote">Devin finished a fix but could not open a PR (push blocked, HTTP 403) -- awaiting Devin GitHub-app authorization on the fork.</div>
 
+        
         <div class="block">
           <div class="blk-lbl">The flake</div>
           <div class="facts">
@@ -660,6 +710,7 @@ flowchart TD
 <span class="">    session.rollback()   # drop ViewMenu/Permission rows leaked by this test</span>
 </pre>
         </div>
+        
 
         
 
@@ -686,6 +737,7 @@ flowchart TD
 
         <div class="statusnote">Independently STABILIZED on local compute: the flake reproduced on the pre-fix file under seeds 202, 303, 404; the PR branch shows 0/9 target failures across baseline + known-bad + fresh seed orderings.</div>
 
+        
         <div class="block">
           <div class="blk-lbl">The flake</div>
           <div class="facts">
@@ -715,6 +767,7 @@ flowchart TD
 <span class="add">+        current_app.config['DATASET_IMPORT_ALLOWED_DATA_URLS'] = original</span>
 </pre>
         </div>
+        
 
         
 
@@ -726,6 +779,7 @@ flowchart TD
             <div class="row"><span class="lab">fresh seeds</span> <span class="pass">505:pass</span> &middot; <span class="pass">606:pass</span> &middot; <span class="pass">707:pass</span> &middot; <span class="pass">808:pass</span> &middot; <span class="pass">909:pass</span></div>
             <div class="row"><span class="lab">diff scan</span>
               <span class="pass">no skip / @flaky / retry / sleep</span></div>
+            
             <div class="row"><span class="lab">provenance</span>
               <span class="pass">test-side only</span> (<span class="mono">tests/unit_tests/datasets/commands/importers/v1/import_test.py</span>)</div>
             <div class="row"><span class="lab">seed sweep</span> <span style="color:var(--muted)">real local run -- reproduced the flake on the PRE-FIX file under seeds 202, 303, 404, then 0/9 target failures on the PR branch (baseline + known-bad + fresh).</span></div>
@@ -759,6 +813,7 @@ flowchart TD
 
         <div class="statusnote">Devin finished a fix but could not open a PR (push blocked, HTTP 403) -- awaiting Devin GitHub-app authorization on the fork.</div>
 
+        
         <div class="block">
           <div class="blk-lbl">The flake</div>
           <div class="facts">
@@ -784,6 +839,7 @@ flowchart TD
 <span class="">        g.pop(k, None)   # don't leak an async g into the next test</span>
 </pre>
         </div>
+        
 
         
 
@@ -798,7 +854,7 @@ flowchart TD
         </div>
       </div>
     
-    <div class="foot">5 clusters &middot; 9 seed-runs executed &middot; live pull from the Devin API</div>
+    <div class="foot">6 clusters &middot; 9 seed-runs executed &middot; live pull from the Devin API</div>
   </section>
 
 </div>

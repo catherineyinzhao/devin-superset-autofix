@@ -40,6 +40,8 @@ class Config:
     poll_interval_seconds: int = int(os.getenv("POLL_INTERVAL_SECONDS", "10"))
     db_path: str = os.getenv("DB_PATH", "./autofix.db")
     run_poller: bool = _bool("RUN_POLLER", True)
+    # Act on the verdict: auto-merge PRs the validator independently confirmed.
+    auto_merge: bool = _bool("AUTO_MERGE", False)
 
     # ---- Cost governance ----
     # Bound how many Devin sessions run concurrently. Excess dispatches are

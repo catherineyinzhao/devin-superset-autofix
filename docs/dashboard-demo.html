@@ -202,7 +202,7 @@
 
     <pre class="mermaid">
 flowchart TD
-  scan["Scheduled scan<br/>suite re-run across seed orderings"] --> clusters["9 flaky tests, 5 root-cause clusters<br/>filed as devin-fix issues"]
+  scan["Scheduled scan<br/>suite re-run across seed orderings"] --> clusters["9 flaky tests, 6 root-cause clusters<br/>filed as devin-fix issues"]
   clusters --> orch[["Orchestrator<br/>idempotent, bounded concurrency"]]
   orch -->|"fan out (parallel)"| s1["Devin session A<br/>1 agent + Playbook / Knowledge / Snapshot"]
   orch --> s2["Devin session B"]
@@ -332,6 +332,12 @@ flowchart TD
         <span class="memk">csrf-exempt-blueprints</span><span class="memfc">[order-dependence/shared-state]</span>
         <div class="memfix"><b>fix pattern:</b> isolate/reset the csrf exempt-blueprints set per test so registrations don't leak</div>
         <div class="memv">verified &middot; Re-ran tests/unit_tests/ 8x (2 known-bad + 5 fresh seeds): 0/1 target failures, 0 regressions, no skip/retry/flaky markers added. STABILIZED.</div>
+      </div>
+      
+      <div class="memrow">
+        <span class="memk">yaml-unsafe-load</span><span class="memfc">[security/unsafe-deserialization]</span>
+        <div class="memfix"><b>fix pattern:</b> replace yaml.load(..., Loader=yaml.Loader) with yaml.safe_load(...) and remove the # noqa: S506</div>
+        <div class="memv">verified &middot; Stabilized: unsafe yaml.load at superset/examples/utils.py:261 removed and replaced with yaml.safe_load; no suppression added; 1 file(s) changed.</div>
       </div>
       
     </div>
@@ -500,17 +506,85 @@ flowchart TD
       
     </div>
     <div class="cards">
-      <div class="card"><div class="n g">4</div><div class="l">Verified stable</div></div>
+      <div class="card"><div class="n g">5</div><div class="l">Verified stable</div></div>
       <div class="card"><div class="n">1</div><div class="l">Escalated</div></div>
       <div class="card"><div class="n">0</div><div class="l">In progress</div></div>
-      <div class="card"><div class="n">80%</div><div class="l">Verified rate</div></div>
-      <div class="card"><div class="n">13.0</div><div class="l">Eng-hrs saved</div></div>
+      <div class="card"><div class="n">83%</div><div class="l">Verified rate</div></div>
+      <div class="card"><div class="n">14.5</div><div class="l">Eng-hrs saved</div></div>
     </div>
   </section>
 
   <section>
     <div class="eyebrow"><span class="enum">07</span> Live</div>
     <h2>What's being remediated &mdash; and how it's decided</h2>
+    
+      
+      
+      
+      <div class="rem ">
+        <div class="rem-head">
+          <div class="rem-title">yaml-unsafe-load</div>
+          <div><span class="badge b-green">CI passing</span> <span class="badge b-green">stabilized</span>
+            <span class="rem-links">&middot; <a href="https://github.com/catherineyinzhao/superset/pull/4208">PR</a> &middot; <a href="https://app.devin.ai/sessions/devin-mock-yaml-unsafe-load-a0">session</a></span></div>
+        </div>
+
+        <div class="statusnote">Stabilized: unsafe yaml.load at superset/examples/utils.py:261 removed and replaced with yaml.safe_load; no suppression added; 1 file(s) changed.</div>
+
+        
+        <div class="block">
+          <div class="blk-lbl">The finding (from a live source scan)</div>
+          <div class="facts">
+            <div class="k">Location</div><div class="v mono">superset/examples/utils.py:261</div>
+            <div class="k">Rule</div><div class="v mono">S506 unsafe yaml.load with Loader=yaml.Loader (suppressed by # noqa: S506)</div>
+            <div class="k">Risk</div><div class="v">superset/examples/utils.py calls yaml.load(..., Loader=yaml.Loader) with a '# noqa: S506' that suppresses the bandit warning. yaml.Loader allows arbitrary object construction -- untrusted input can execute code. The noqa masks a real risk.</div>
+          </div>
+        </div>
+        <div class="block">
+          <div class="blk-lbl">Remediation &mdash; what Devin did</div>
+          <div class="facts" style="margin-bottom:12px;">
+            <div class="k">Fix</div><div class="v">replace yaml.load(..., Loader=yaml.Loader) with yaml.safe_load(...) and remove the # noqa: S506</div>
+          </div>
+          <pre class="code"><span class="del">-    metadata = yaml.load(contents.get(METADATA_FILE_NAME, '{}'), Loader=yaml.Loader)  # noqa: S506</span>
+<span class="add">+    metadata = yaml.safe_load(contents.get(METADATA_FILE_NAME, '{}'))</span>
+</pre>
+        </div>
+        
+
+        
+
+        
+        <div class="block">
+          <div class="blk-lbl">Independent verification &mdash; re-derived from the PR branch</div>
+          <div class="evidence">
+            
+            
+            <div class="row"><span class="lab">diff scan</span>
+              <span class="pass">no skip / @flaky / retry / sleep</span></div>
+            <div class="row"><span class="lab">unsafe call</span>
+              <span class="pass">removed; replaced with yaml.safe_load</span>
+              </div>
+            <div class="row"><span class="lab">provenance</span>
+              <span class="pass">product fix (expected for a security finding)</span> (<span class="mono">superset/examples/utils.py</span>)
+              </div>
+            
+          </div>
+        </div>
+        
+
+        <div class="block">
+          <div class="blk-lbl">Decision trace</div>
+          <div class="trace">
+          <div class="t "><span class="dot"></span><span class="tk">queued</span><span class="tm">queued yaml-unsafe-load</span></div>
+          <div class="t b"><span class="dot"></span><span class="tk">dispatch</span><span class="tm">dispatched Devin for yaml-unsafe-load</span></div>
+          <div class="t "><span class="dot"></span><span class="tk">context</span><span class="tm">playbook:pb-flaky-state-isolation | snapshot:snap-superset-dev | knowledge:kb-superset-flaky-incidents</span></div>
+          <div class="t b"><span class="dot"></span><span class="tk">verify</span><span class="tm">independent re-derivation started</span></div>
+          <div class="t b"><span class="dot"></span><span class="tk">ci check</span><span class="tm">GitHub CI reported: green</span></div>
+          <div class="t g"><span class="dot"></span><span class="tk">verdict</span><span class="tm">Stabilized: unsafe yaml.load at superset/examples/utils.py:261 removed and replaced with yaml.safe_load; no suppression added; 1 file(s) changed.</span></div>
+          <div class="t g"><span class="dot"></span><span class="tk">stabilized</span><span class="tm">PR ready for human review</span></div>
+          
+          </div>
+        </div>
+      </div>
     
       
       
@@ -524,6 +598,7 @@ flowchart TD
 
         <div class="statusnote">ESCALATED: fix touched product code under superset/ (or the session escalated a suspected product bug). Routed to a human -- not auto-stabilized.</div>
 
+        
         <div class="block">
           <div class="blk-lbl">The flake</div>
           <div class="facts">
@@ -547,6 +622,7 @@ flowchart TD
 <span class=""># test would mask a real bug.</span>
 </pre>
         </div>
+        
 
         <div class="flag">&#9650; GitHub CI reported passing &mdash; the validator independently disagreed and caught it before merge.</div>
 
@@ -558,6 +634,7 @@ flowchart TD
             <div class="row"><span class="lab">fresh seeds</span> <span class="pass">505:pass</span> &middot; <span class="pass">606:pass</span> &middot; <span class="pass">707:pass</span> &middot; <span class="pass">808:pass</span> &middot; <span class="pass">909:pass</span></div>
             <div class="row"><span class="lab">diff scan</span>
               <span class="pass">no skip / @flaky / retry / sleep</span></div>
+            
             <div class="row"><span class="lab">provenance</span>
               <span class="fail">touched product code &rarr; escalate</span></div>
             
@@ -592,6 +669,7 @@ flowchart TD
 
         <div class="statusnote">Re-ran tests/unit_tests/ 8x (2 known-bad + 5 fresh seeds): 0/1 target failures, 0 regressions, no skip/retry/flaky markers added. STABILIZED.</div>
 
+        
         <div class="block">
           <div class="blk-lbl">The flake</div>
           <div class="facts">
@@ -616,6 +694,7 @@ flowchart TD
 <span class="">    app.extensions['csrf']._exempt_blueprints = before</span>
 </pre>
         </div>
+        
 
         
 
@@ -627,6 +706,7 @@ flowchart TD
             <div class="row"><span class="lab">fresh seeds</span> <span class="pass">505:pass</span> &middot; <span class="pass">606:pass</span> &middot; <span class="pass">707:pass</span> &middot; <span class="pass">808:pass</span> &middot; <span class="pass">909:pass</span></div>
             <div class="row"><span class="lab">diff scan</span>
               <span class="pass">no skip / @flaky / retry / sleep</span></div>
+            
             <div class="row"><span class="lab">provenance</span>
               <span class="pass">test-side only</span> (<span class="mono">tests/unit_tests/security/conftest.py</span>)</div>
             
@@ -661,6 +741,7 @@ flowchart TD
 
         <div class="statusnote">Re-ran tests/unit_tests/ 10x (4 known-bad + 5 fresh seeds): 0/1 target failures, 0 regressions, no skip/retry/flaky markers added. STABILIZED.</div>
 
+        
         <div class="block">
           <div class="blk-lbl">The flake</div>
           <div class="facts">
@@ -684,6 +765,7 @@ flowchart TD
 <span class="">    session.rollback()   # drop ViewMenu/Permission rows leaked by this test</span>
 </pre>
         </div>
+        
 
         
 
@@ -695,6 +777,7 @@ flowchart TD
             <div class="row"><span class="lab">fresh seeds</span> <span class="pass">505:pass</span> &middot; <span class="pass">606:pass</span> &middot; <span class="pass">707:pass</span> &middot; <span class="pass">808:pass</span> &middot; <span class="pass">909:pass</span></div>
             <div class="row"><span class="lab">diff scan</span>
               <span class="pass">no skip / @flaky / retry / sleep</span></div>
+            
             <div class="row"><span class="lab">provenance</span>
               <span class="pass">test-side only</span> (<span class="mono">tests/unit_tests/migrations/conftest.py</span>)</div>
             
@@ -733,6 +816,7 @@ flowchart TD
 
         <div class="statusnote">Re-ran tests/unit_tests/ 9x (3 known-bad + 5 fresh seeds): 0/1 target failures, 0 regressions, no skip/retry/flaky markers added. STABILIZED.</div>
 
+        
         <div class="block">
           <div class="blk-lbl">The flake</div>
           <div class="facts">
@@ -762,6 +846,7 @@ flowchart TD
 <span class="add">+        current_app.config['DATASET_IMPORT_ALLOWED_DATA_URLS'] = original</span>
 </pre>
         </div>
+        
 
         
 
@@ -773,6 +858,7 @@ flowchart TD
             <div class="row"><span class="lab">fresh seeds</span> <span class="pass">505:pass</span> &middot; <span class="pass">606:pass</span> &middot; <span class="pass">707:pass</span> &middot; <span class="pass">808:pass</span> &middot; <span class="pass">909:pass</span></div>
             <div class="row"><span class="lab">diff scan</span>
               <span class="pass">no skip / @flaky / retry / sleep</span></div>
+            
             <div class="row"><span class="lab">provenance</span>
               <span class="pass">test-side only</span> (<span class="mono">tests/unit_tests/datasets/conftest.py</span>)</div>
             
@@ -812,6 +898,7 @@ flowchart TD
 
         <div class="statusnote">Re-ran tests/unit_tests/ 10x (4 known-bad + 5 fresh seeds): 0/5 target failures, 0 regressions, no skip/retry/flaky markers added. STABILIZED.</div>
 
+        
         <div class="block">
           <div class="blk-lbl">The flake</div>
           <div class="facts">
@@ -837,6 +924,7 @@ flowchart TD
 <span class="">        g.pop(k, None)   # don't leak an async g into the next test</span>
 </pre>
         </div>
+        
 
         
 
@@ -848,6 +936,7 @@ flowchart TD
             <div class="row"><span class="lab">fresh seeds</span> <span class="pass">505:pass</span> &middot; <span class="pass">606:pass</span> &middot; <span class="pass">707:pass</span> &middot; <span class="pass">808:pass</span> &middot; <span class="pass">909:pass</span></div>
             <div class="row"><span class="lab">diff scan</span>
               <span class="pass">no skip / @flaky / retry / sleep</span></div>
+            
             <div class="row"><span class="lab">provenance</span>
               <span class="pass">test-side only</span> (<span class="mono">tests/unit_tests/db_engine_specs/conftest.py</span>)</div>
             
@@ -870,7 +959,7 @@ flowchart TD
         </div>
       </div>
     
-    <div class="foot">5 clusters &middot; 46 seed-runs executed &middot; simulated run (mock mode) -- capability demo</div>
+    <div class="foot">6 clusters &middot; 46 seed-runs executed &middot; simulated run (mock mode) -- capability demo</div>
   </section>
 
 </div>

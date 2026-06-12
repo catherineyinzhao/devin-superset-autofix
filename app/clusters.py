@@ -30,6 +30,10 @@ class Cluster:
     leaker: str = ""
     fix_note: str = ""
     fix_diff: str = ""  # short representative snippet of the root-cause fix
+    # "flaky" (order-dependence) or "security" (a scan finding). The validator
+    # picks class-appropriate gates -- proving the verification layer is general.
+    issue_class: str = "flaky"
+    location: str = ""   # for non-flaky findings: file:line
     # Devin Playbook key for this flake class (-> a reusable remediation
     # procedure). All current clusters are order-dependence/shared-state, so they
     # share the "state-isolation" playbook; resolved to a real id via env.
@@ -204,6 +208,32 @@ CLUSTERS: List[Cluster] = [
         # config), refuses to touch product code, and escalates to a human.
         # Demonstrates trust-failure #4: route the bug, don't mask it.
         demo_script=["needs_human_review"],
+    ),
+    # --- second issue class: a real SECURITY finding from a live source scan --- #
+    Cluster(
+        id="yaml-unsafe-load",
+        title="[Security] Unsafe yaml.load (S506) in superset/examples/utils.py",
+        root_cause_class="security/unsafe-deserialization",
+        target_test_ids=[],
+        known_bad_seeds=[],
+        issue_class="security",
+        location="superset/examples/utils.py:261",
+        root_cause=(
+            "superset/examples/utils.py calls yaml.load(..., Loader=yaml.Loader) with a "
+            "'# noqa: S506' that suppresses the bandit warning. yaml.Loader allows arbitrary "
+            "object construction -- untrusted input can execute code. The noqa masks a real risk."
+        ),
+        failure_excerpt="S506 unsafe yaml.load with Loader=yaml.Loader (suppressed by # noqa: S506)",
+        leaker="(n/a -- not order-dependent; a static security finding)",
+        fix_note="replace yaml.load(..., Loader=yaml.Loader) with yaml.safe_load(...) and remove the # noqa: S506",
+        fix_diff=(
+            "-    metadata = yaml.load(contents.get(METADATA_FILE_NAME, '{}'), Loader=yaml.Loader)  # noqa: S506\n"
+            "+    metadata = yaml.safe_load(contents.get(METADATA_FILE_NAME, '{}'))"
+        ),
+        prompt_file="docs/prompts/fix-yaml-unsafe-load.md",
+        labels=["devin-fix", "security", "rule:S506"],
+        human_baseline_hours=1.5,
+        demo_script=["stabilized"],
     ),
 ]
 

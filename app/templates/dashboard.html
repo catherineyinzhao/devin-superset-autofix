@@ -442,6 +442,24 @@ flowchart TD
 
         {% if r.summary %}<div class="statusnote">{{ r.summary }}</div>{% endif %}
 
+        {% if c.issue_class == 'security' %}
+        <div class="block">
+          <div class="blk-lbl">The finding (from a live source scan)</div>
+          <div class="facts">
+            <div class="k">Location</div><div class="v mono">{{ c.location }}</div>
+            <div class="k">Rule</div><div class="v mono">{{ c.failure_excerpt }}</div>
+            <div class="k">Risk</div><div class="v">{{ c.root_cause }}</div>
+          </div>
+        </div>
+        <div class="block">
+          <div class="blk-lbl">Remediation &mdash; what Devin did</div>
+          <div class="facts" style="margin-bottom:12px;">
+            <div class="k">Fix</div><div class="v">{{ c.fix_note }}</div>
+          </div>
+          <pre class="code">{% for line in c.fix_diff.split('\n') %}<span class="{{ 'add' if line.startswith('+') else ('del' if line.startswith('-') else '') }}">{{ line }}</span>
+{% endfor %}</pre>
+        </div>
+        {% else %}
         <div class="block">
           <div class="blk-lbl">The flake</div>
           <div class="facts">
@@ -462,6 +480,7 @@ flowchart TD
           <pre class="code">{% for line in c.fix_diff.split('\n') %}<span class="{{ 'add' if line.startswith('+') else ('del' if line.startswith('-') else '') }}">{{ line }}</span>
 {% endfor %}</pre>
         </div>
+        {% endif %}
 
         {% if dis %}<div class="flag">&#9650; GitHub CI reported passing &mdash; the validator independently disagreed and caught it before merge.</div>{% endif %}
 
@@ -473,8 +492,12 @@ flowchart TD
             {% if res.fresh %}<div class="row"><span class="lab">fresh seeds</span> {{ seedmap(res.fresh) }}</div>{% endif %}
             <div class="row"><span class="lab">diff scan</span>
               {% if res.diff_scan and res.diff_scan.forbidden_patterns %}<span class="fail mono">{{ res.diff_scan.forbidden_patterns|join(', ') }}</span> &mdash; rejected{% else %}<span class="pass">no skip / @flaky / retry / sleep</span>{% endif %}</div>
+            {% if res.security %}<div class="row"><span class="lab">unsafe call</span>
+              {% if res.security.unsafe_removed and res.security.safe_load_present %}<span class="pass">removed; replaced with yaml.safe_load</span>{% else %}<span class="fail">still present / not safely replaced</span>{% endif %}
+              {% if res.security.suppression_added %} &middot; <span class="fail">suppression added &mdash; rejected</span>{% endif %}</div>{% endif %}
             {% if res.provenance %}<div class="row"><span class="lab">provenance</span>
-              {% if res.provenance.touched_product_code %}<span class="fail">touched product code &rarr; escalate</span>{% else %}<span class="pass">test-side only</span>{% if res.provenance.files_changed %} (<span class="mono">{{ res.provenance.files_changed|join(', ') }}</span>){% endif %}{% endif %}</div>{% endif %}
+              {% if res.provenance.expected_for_security %}<span class="pass">product fix (expected for a security finding)</span>{% if res.provenance.files_changed %} (<span class="mono">{{ res.provenance.files_changed|join(', ') }}</span>){% endif %}
+              {% elif res.provenance.touched_product_code %}<span class="fail">touched product code &rarr; escalate</span>{% else %}<span class="pass">test-side only</span>{% if res.provenance.files_changed %} (<span class="mono">{{ res.provenance.files_changed|join(', ') }}</span>){% endif %}{% endif %}</div>{% endif %}
             {% if res.seed_sweep_note %}<div class="row"><span class="lab">seed sweep</span> <span style="color:var(--muted)">{{ res.seed_sweep_note }}</span></div>{% endif %}
           </div>
         </div>

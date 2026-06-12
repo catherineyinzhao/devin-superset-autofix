@@ -166,6 +166,13 @@ class GitHubClient:
         resp.raise_for_status()
         return resp.text
 
+    def merge_pr(self, pr_number: int, method: str = "squash") -> bool:
+        if self.mock:
+            return True
+        resp = requests.put(self._url(f"/pulls/{pr_number}/merge"),
+                            json={"merge_method": method}, headers=self._headers, timeout=30)
+        return resp.status_code in (200, 201)
+
     def get_check_runs(self, head_sha: str) -> List[Dict[str, Any]]:
         if self.mock:
             # The lie, made concrete: CI reports all-green regardless of whether

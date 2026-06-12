@@ -106,6 +106,18 @@ def synth_diff(pr_number: int) -> str:
         return ""
     cluster = get_cluster(meta["cluster_id"])
     intent = meta["intent"]
+
+    # Security class: a different fix shape. stabilized -> real safe_load swap;
+    # cheat -> keep the unsafe call but slap a # nosec suppression on it.
+    if cluster.issue_class == "security":
+        path = (cluster.location or "superset/examples/utils.py:0").split(":")[0]
+        if intent == "cheat_detected":
+            return (
+                f"diff --git a/{path} b/{path}\n--- a/{path}\n+++ b/{path}\n@@ @@\n"
+                "-    metadata = yaml.load(contents, Loader=yaml.Loader)  # noqa: S506\n"
+                "+    metadata = yaml.load(contents, Loader=yaml.Loader)  # nosec  (suppressed, still unsafe)\n")
+        return f"diff --git a/{path} b/{path}\n--- a/{path}\n+++ b/{path}\n@@ @@\n{cluster.fix_diff}\n"
+
     test_file = cluster.target_test_ids[0].split("::")[0]
     test_name = cluster.target_test_ids[0].split("::")[1].split("[")[0]
 
