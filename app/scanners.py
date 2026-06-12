@@ -19,16 +19,25 @@ from typing import Any, Dict, List, Optional
 
 from app.clusters import CLUSTERS
 
-# unsafe: yaml.load(...) with an explicit non-safe Loader (S506)
-_UNSAFE_YAML = re.compile(r"yaml\.load\s*\(.*Loader\s*=\s*yaml\.(Loader|FullLoader|UnsafeLoader)")
+# Static-finding rules: each maps a class to a regex over the source. New rules
+# (more security checks, more code-quality lints, a dependency scanner) plug in
+# here without touching the rest of the harness.
+_STATIC_RULES = [
+    {"cluster_id": "yaml-unsafe-load", "issue_class": "security", "rule": "S506",
+     "pattern": re.compile(r"yaml\.load\s*\(.*Loader\s*=\s*yaml\."), "skip_if": "safe_load"},
+    {"cluster_id": "bare-except", "issue_class": "code-quality", "rule": "E722",
+     "pattern": re.compile(r"^\s*except\s*:"), "skip_if": None},
+]
 
 
-def scan_security(repo_dir: str) -> List[Dict[str, Any]]:
-    """Live scan of the fork's source for unsafe deserialization (S506)."""
+def scan_static(repo_dir: str) -> List[Dict[str, Any]]:
+    """Live source scan of the fork for every registered static rule
+    (security + code-quality). Returns the first hit per rule."""
     findings: List[Dict[str, Any]] = []
     root = Path(repo_dir) / "superset"
     if not root.exists():
         return findings
+    seen = set()
     for py in root.rglob("*.py"):
         if "test" in py.name:
             continue
@@ -37,14 +46,17 @@ def scan_security(repo_dir: str) -> List[Dict[str, Any]]:
         except OSError:
             continue
         for i, line in enumerate(lines, 1):
-            if _UNSAFE_YAML.search(line) and "safe_load" not in line:
-                findings.append({
-                    "issue_class": "security", "rule": "S506",
-                    "cluster_id": "yaml-unsafe-load",
-                    "location": f"superset/{py.relative_to(root)}:{i}",
-                    "snippet": line.strip(),
-                    "suppressed": "noqa" in line.lower(),
-                })
+            for r in _STATIC_RULES:
+                if r["cluster_id"] in seen:
+                    continue
+                if r["pattern"].search(line) and not (r["skip_if"] and r["skip_if"] in line):
+                    seen.add(r["cluster_id"])
+                    findings.append({
+                        "issue_class": r["issue_class"], "rule": r["rule"],
+                        "cluster_id": r["cluster_id"],
+                        "location": f"superset/{py.relative_to(root)}:{i}",
+                        "snippet": line.strip(), "suppressed": "noqa" in line.lower(),
+                    })
     return findings
 
 
@@ -59,5 +71,5 @@ def scan_flaky() -> List[Dict[str, Any]]:
 def scan_all(repo_dir: Optional[str] = None) -> List[Dict[str, Any]]:
     out = scan_flaky()
     if repo_dir:
-        out += scan_security(repo_dir)
+        out += scan_static(repo_dir)
     return out

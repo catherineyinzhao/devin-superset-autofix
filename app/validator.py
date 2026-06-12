@@ -210,16 +210,16 @@ def _summary(verdict: str, cluster: Cluster, seeds: Dict[str, Any], diff_scan: D
     return "INCONCLUSIVE: environment/build/collection failure prevented a clean verdict."
 
 
-_UNSAFE_YAML = re.compile(r"yaml\.load\s*\(.*Loader\s*=\s*yaml\.(Loader|FullLoader|UnsafeLoader)")
+_STATIC_CLASSES = {"security", "code-quality"}
 
 
-def _validate_security(cluster: Cluster, pr_url: str) -> Validation:
-    """Class-appropriate gates for a SECURITY finding (e.g. S506 unsafe yaml.load).
+def _validate_static(cluster: Cluster, pr_url: str) -> Validation:
+    """Class-general gates for a STATIC finding (security S506, code-quality E722, ...).
 
-    Different gates than flaky: there is no seed-sweep. We check the unsafe pattern
-    is actually GONE (not just suppressed), that a safe replacement is present, and
-    -- the anti-cheat for this class -- that the fix did not merely add a `# noqa` /
-    `# nosec` suppression. Touching product code is EXPECTED here (it's a product fix)."""
+    No seed-sweep. We check that the flagged `bad_pattern` is actually GONE (removed,
+    and not reintroduced in the added lines), and -- the anti-cheat for these classes --
+    that the fix did not merely add a `# noqa` / `# nosec` suppression. Touching product
+    code is EXPECTED here (it is the product fix)."""
     pr_number = pr_number_from_url(pr_url)
     pr = github.get_pr(pr_number) if pr_number else None
     if not pr:
@@ -232,26 +232,26 @@ def _validate_security(cluster: Cluster, pr_url: str) -> Validation:
     removed = [l[1:] for l in diff.splitlines() if l.startswith("-") and not l.startswith("---")]
     files = [f["filename"] for f in github.get_pr_files(pr_number)]
 
-    unsafe_removed = any(_UNSAFE_YAML.search(l) for l in removed)
-    unsafe_still = any(_UNSAFE_YAML.search(l) for l in added)
-    safe_present = any("safe_load" in l for l in added)
+    bad = re.compile(cluster.bad_pattern) if cluster.bad_pattern else None
+    pattern_removed = bool(bad) and any(bad.search(l) for l in removed)
+    reintroduced = bool(bad) and any(bad.search(l) for l in added)
     suppression = any(re.search(r"#\s*(noqa|nosec)", l) for l in added)
 
-    if suppression and not safe_present:
+    if suppression:
         verdict = Verdict.CHEAT_DETECTED
-        summary = "REJECTED: the fix only added a # noqa/# nosec suppression -- the unsafe call remains."
-    elif unsafe_still or not safe_present or not unsafe_removed:
+        summary = "REJECTED: the fix added a # noqa/# nosec suppression -- the finding was masked, not fixed."
+    elif reintroduced or not pattern_removed:
         verdict = Verdict.STILL_FLAKY
-        summary = "REJECTED: the unsafe yaml.load was not actually replaced with a safe loader."
+        summary = f"REJECTED: the flagged pattern at {cluster.location} was not actually removed."
     else:
         verdict = Verdict.STABILIZED
-        summary = (f"Stabilized: unsafe yaml.load at {cluster.location} removed and replaced with "
-                   f"yaml.safe_load; no suppression added; {len(files)} file(s) changed.")
+        summary = (f"Stabilized: the {cluster.root_cause_class} finding at {cluster.location} was removed "
+                   f"(no # noqa/# nosec suppression added); {len(files)} file(s) changed.")
     results = {
-        "security": {"location": cluster.location, "unsafe_removed": unsafe_removed,
-                     "safe_load_present": safe_present, "suppression_added": suppression},
+        "static": {"location": cluster.location, "pattern_removed": pattern_removed,
+                   "reintroduced": reintroduced, "suppression_added": suppression},
         "diff_scan": {"forbidden_patterns": (["# noqa/# nosec suppression"] if suppression else []), "soft_flags": []},
-        "provenance": {"touched_product_code": True, "files_changed": files, "expected_for_security": True},
+        "provenance": {"touched_product_code": True, "files_changed": files, "expected_for_static": True},
     }
     return Validation(cluster.id, pr_url, branch, verdict, ci_status, seeds_run=0,
                       results=results, summary=summary)
@@ -260,8 +260,8 @@ def _validate_security(cluster: Cluster, pr_url: str) -> Validation:
 def validate(cluster: Cluster, pr_url: str, *, escalated: bool = False) -> Validation:
     """Independently re-derive the verdict for a PR. The one function the whole
     thesis rests on. Gates are chosen by issue class."""
-    if cluster.issue_class == "security":
-        return _validate_security(cluster, pr_url)
+    if cluster.issue_class in _STATIC_CLASSES:
+        return _validate_static(cluster, pr_url)
 
     pr_number = pr_number_from_url(pr_url)
     pr = github.get_pr(pr_number) if pr_number else None

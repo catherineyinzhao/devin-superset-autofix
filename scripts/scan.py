@@ -24,9 +24,9 @@ def main() -> None:
     repo_dir = sys.argv[1] if len(sys.argv) > 1 else None
     findings = scan_all(repo_dir)
     events.log(events.Event.SCAN_STARTED, f"scan produced {len(findings)} finding(s)")
-    print(f"scan: {len(findings)} finding(s) "
-          f"({sum(1 for f in findings if f['issue_class']=='flaky')} flaky, "
-          f"{sum(1 for f in findings if f['issue_class']=='security')} security)")
+    from collections import Counter
+    by_class = Counter(f["issue_class"] for f in findings)
+    print(f"scan: {len(findings)} finding(s) -- " + ", ".join(f"{n} {k}" for k, n in by_class.items()))
 
     for f in findings:
         c = get_cluster(f["cluster_id"])

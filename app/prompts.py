@@ -50,11 +50,12 @@ FORBIDDEN = (
 )
 
 
-def _security_prompt(cluster: Cluster, repo_url: str, issue_number: Optional[int]) -> str:
+def _static_prompt(cluster: Cluster, repo_url: str, issue_number: Optional[int]) -> str:
     branch = f"devin/fix-{cluster.id}"
     issue_ref = f" (closes #{issue_number})" if issue_number else ""
+    kind = "SECURITY" if cluster.issue_class == "security" else "CODE-QUALITY"
     return f"""## Role
-You are an autonomous software engineer fixing a SECURITY finding in a fork of Apache Superset.
+You are an autonomous software engineer fixing a {kind} finding in a fork of Apache Superset.
 
 ## Repository
 {repo_url} (branch: master). Clone it. Create a working branch: {branch}
@@ -68,12 +69,12 @@ Why it matters: {cluster.root_cause}
 {cluster.fix_note}
 
 ## HARD CONSTRAINTS (anti-cheat -- non-negotiable)
-An independent validator scans your diff. You MUST actually remove the unsafe call.
-You MUST NOT merely silence the warning with `# noqa`, `# nosec`, or `# type: ignore`.
-Do not change unrelated code.
+An independent validator re-derives the verdict from your diff. You MUST actually
+fix the flagged code. You MUST NOT merely silence the warning with `# noqa`,
+`# nosec`, or `# type: ignore`. Do not change unrelated code.
 
 ## Done criteria
-1. The unsafe `yaml.load(..., Loader=...)` is replaced with `yaml.safe_load(...)`.
+1. The flagged pattern is genuinely removed (not suppressed).
 2. No new `# noqa` / `# nosec` suppression is added.
 3. `pytest tests/unit_tests/ -x -q` passes (paste real output).
 4. Open a PR from {branch} into master, title "[Auto] Fix {cluster.id}"{issue_ref}.
@@ -83,8 +84,8 @@ Do not ask for clarification -- make your best judgment and proceed.
 
 
 def build_prompt(cluster: Cluster, repo_url: str, issue_number: Optional[int] = None) -> str:
-    if cluster.issue_class == "security":
-        return _security_prompt(cluster, repo_url, issue_number)
+    if cluster.issue_class in ("security", "code-quality"):
+        return _static_prompt(cluster, repo_url, issue_number)
     seeds = ", ".join(str(s) for s in cluster.known_bad_seeds)
     targets = "\n".join(f"  - {t}" for t in cluster.target_test_ids)
     branch = f"devin/flake-{cluster.id}"

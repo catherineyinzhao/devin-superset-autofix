@@ -107,15 +107,15 @@ def synth_diff(pr_number: int) -> str:
     cluster = get_cluster(meta["cluster_id"])
     intent = meta["intent"]
 
-    # Security class: a different fix shape. stabilized -> real safe_load swap;
-    # cheat -> keep the unsafe call but slap a # nosec suppression on it.
-    if cluster.issue_class == "security":
+    # Static-finding classes (security / code-quality): different fix shape.
+    # stabilized -> the real fix diff; cheat -> re-add the flagged line with a
+    # # noqa suppression (masks the finding instead of fixing it).
+    if cluster.issue_class in ("security", "code-quality"):
         path = (cluster.location or "superset/examples/utils.py:0").split(":")[0]
         if intent == "cheat_detected":
-            return (
-                f"diff --git a/{path} b/{path}\n--- a/{path}\n+++ b/{path}\n@@ @@\n"
-                "-    metadata = yaml.load(contents, Loader=yaml.Loader)  # noqa: S506\n"
-                "+    metadata = yaml.load(contents, Loader=yaml.Loader)  # nosec  (suppressed, still unsafe)\n")
+            bad = next((l[1:].rstrip() for l in cluster.fix_diff.splitlines() if l.startswith("-")), "")
+            return (f"diff --git a/{path} b/{path}\n--- a/{path}\n+++ b/{path}\n@@ @@\n"
+                    f"+{bad}  # noqa  (suppressed, not fixed)\n")
         return f"diff --git a/{path} b/{path}\n--- a/{path}\n+++ b/{path}\n@@ @@\n{cluster.fix_diff}\n"
 
     test_file = cluster.target_test_ids[0].split("::")[0]

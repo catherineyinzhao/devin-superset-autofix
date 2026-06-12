@@ -168,9 +168,9 @@
 <body>
 <div class="wrap"><header>
     <h1>Devin Flaky-Test Autofix</h1>
-    <p class="tagline">An independent verification layer for autonomous code remediation. Devin fixes
-      flaky tests; <b>before any PR reaches a human</b>, this system independently re-runs the tests
-      across many orderings and scans for cheat-fixes.</p>
+    <p class="tagline">An independent verification layer for autonomous code remediation. A scan finds issues
+      &mdash; flaky tests, security findings, code-quality lint &mdash; Devin fixes them, and <b>before any PR
+      reaches a human</b> this system independently re-verifies the fix and rejects cheats.</p>
     <div class="repo">target: github.com/catherineyinzhao/superset &nbsp;|&nbsp; live, auto-refresh 5s</div>
   </header>
 
@@ -189,6 +189,12 @@
         is to <b>hide it</b> &mdash; <code>@pytest.mark.flaky</code>, <code>skip</code>, a retry. CI goes
         green; the bug is now invisible <em>and</em> the test no longer protects you.</p>
       <p>So this system treats "Devin opened a PR" as the <b>start of verification</b>, not the finish line.</p>
+      <p><b>And why not just a scanner?</b> Detection is the commodity half &mdash; linters, SAST,
+        flake-detectors and dependency scanners all emit findings (this system runs a real one). The hard,
+        valuable half is <b>trustworthy remediation</b>: those findings pile into a backlog nobody clears
+        (often masked with a <code># noqa</code> &mdash; every finding here was). Pairing a scanner (the
+        trigger) with Devin (the fix) and an independent verifier (the trust) <b>retires the backlog instead
+        of growing it</b> &mdash; the value a scanner alone can never deliver.</p>
     </div>
   </section>
 
@@ -202,7 +208,7 @@
 
     <pre class="mermaid">
 flowchart TD
-  scan["Scheduled scan<br/>suite re-run across seed orderings"] --> clusters["9 flaky tests, 6 root-cause clusters<br/>filed as devin-fix issues"]
+  scan["Scheduled scan<br/>suite re-run across seed orderings"] --> clusters["9 flaky tests, 7 root-cause clusters<br/>filed as devin-fix issues"]
   clusters --> orch[["Orchestrator<br/>idempotent, bounded concurrency"]]
   orch -->|"fan out (parallel)"| s1["Devin session A<br/>1 agent + Playbook / Knowledge / Snapshot"]
   orch --> s2["Devin session B"]
@@ -338,6 +344,12 @@ flowchart TD
         <span class="memk">yaml-unsafe-load</span><span class="memfc">[security/unsafe-deserialization]</span>
         <div class="memfix"><b>fix pattern:</b> replace yaml.load(..., Loader=yaml.Loader) with yaml.safe_load(...) and remove the # noqa: S506</div>
         <div class="memv">verified &middot; Stabilized: unsafe yaml.load at superset/examples/utils.py:261 removed and replaced with yaml.safe_load; no suppression added; 1 file(s) changed.</div>
+      </div>
+      
+      <div class="memrow">
+        <span class="memk">bare-except</span><span class="memfc">[code-quality/broad-except]</span>
+        <div class="memfix"><b>fix pattern:</b> narrow the handler to 'except Exception:' (or the specific exception) and remove the # noqa</div>
+        <div class="memv">verified &middot; Stabilized: the code-quality/broad-except finding at superset/migrations/versions/2016-03-24_14-13_763d4b211ec9_fixing_audit_fk.py:99 was removed (no # noqa/# nosec suppression added); 1 file(s) changed.</div>
       </div>
       
     </div>
@@ -506,12 +518,18 @@ flowchart TD
       
     </div>
     <div class="cards">
-      <div class="card"><div class="n g">5</div><div class="l">Verified stable</div></div>
+      <div class="card"><div class="n g">6</div><div class="l">Verified stable</div></div>
       <div class="card"><div class="n">1</div><div class="l">Escalated</div></div>
       <div class="card"><div class="n">0</div><div class="l">In progress</div></div>
-      <div class="card"><div class="n">83%</div><div class="l">Verified rate</div></div>
-      <div class="card"><div class="n">14.5</div><div class="l">Eng-hrs saved</div></div>
+      <div class="card"><div class="n">86%</div><div class="l">Verified rate</div></div>
+      <div class="card"><div class="n">15.5</div><div class="l">Eng-hrs saved</div></div>
     </div>
+    <p class="lead2" style="margin-top:20px;font-size:14.5px;">What this is worth, honestly: every
+      <b>verified</b> fix is debt a scanner would only have accumulated &mdash; retired and proven; every caught
+      cheat or regression is an untrustworthy PR kept out of the codebase. Engineer-hours are a deliberately
+      rough proxy, credited <b>only on verified fixes</b> &mdash; we don't headline a dollar figure (the
+      rigorous per-session estimate is Devin's own
+      <a href="https://cognition.ai/blog/ai-productivity">productivity model</a>).</p>
   </section>
 
   <section>
@@ -523,12 +541,81 @@ flowchart TD
       
       <div class="rem ">
         <div class="rem-head">
+          <div class="rem-title">bare-except</div>
+          <div><span class="badge b-green">CI passing</span> <span class="badge b-green">stabilized</span>
+            <span class="rem-links">&middot; <a href="https://github.com/catherineyinzhao/superset/pull/4209">PR</a> &middot; <a href="https://app.devin.ai/sessions/devin-mock-bare-except-a0">session</a></span></div>
+        </div>
+
+        <div class="statusnote">Stabilized: the code-quality/broad-except finding at superset/migrations/versions/2016-03-24_14-13_763d4b211ec9_fixing_audit_fk.py:99 was removed (no # noqa/# nosec suppression added); 1 file(s) changed.</div>
+
+        
+        <div class="block">
+          <div class="blk-lbl">The finding (from a live source scan)</div>
+          <div class="facts">
+            <div class="k">Location</div><div class="v mono">superset/migrations/versions/2016-03-24_14-13_763d4b211ec9_fixing_audit_fk.py:99</div>
+            <div class="k">Rule</div><div class="v mono">E722/S110 bare 'except:' (suppressed by # noqa: E722, S110)</div>
+            <div class="k">Risk</div><div class="v">A bare 'except:' (E722) silently swallows every exception, including KeyboardInterrupt/SystemExit (S110). It is suppressed with '# noqa: E722, S110', which hides the lint rather than fixing it.</div>
+          </div>
+        </div>
+        <div class="block">
+          <div class="blk-lbl">Remediation &mdash; what Devin did</div>
+          <div class="facts" style="margin-bottom:12px;">
+            <div class="k">Fix</div><div class="v">narrow the handler to 'except Exception:' (or the specific exception) and remove the # noqa</div>
+          </div>
+          <pre class="code"><span class="del">-    except:  # noqa: E722, S110</span>
+<span class="add">+    except Exception:</span>
+<span class=""></span>
+</pre>
+        </div>
+        
+
+        
+
+        
+        <div class="block">
+          <div class="blk-lbl">Independent verification &mdash; re-derived from the PR branch</div>
+          <div class="evidence">
+            
+            
+            <div class="row"><span class="lab">diff scan</span>
+              <span class="pass">no skip / @flaky / retry / sleep</span></div>
+            <div class="row"><span class="lab">flagged pattern</span>
+              <span class="pass">removed (not reintroduced)</span>
+              </div>
+            <div class="row"><span class="lab">provenance</span>
+              <span class="pass">product fix (expected for a scan finding)</span> (<span class="mono">superset/migrations/versions/2016-03-24_14-13_763d4b211ec9_fixing_audit_fk.py</span>)
+              </div>
+            
+          </div>
+        </div>
+        
+
+        <div class="block">
+          <div class="blk-lbl">Decision trace</div>
+          <div class="trace">
+          <div class="t "><span class="dot"></span><span class="tk">queued</span><span class="tm">queued bare-except</span></div>
+          <div class="t b"><span class="dot"></span><span class="tk">dispatch</span><span class="tm">dispatched Devin for bare-except</span></div>
+          <div class="t "><span class="dot"></span><span class="tk">context</span><span class="tm">playbook:pb-flaky-state-isolation | snapshot:snap-superset-dev | knowledge:kb-superset-flaky-incidents</span></div>
+          <div class="t b"><span class="dot"></span><span class="tk">verify</span><span class="tm">independent re-derivation started</span></div>
+          <div class="t b"><span class="dot"></span><span class="tk">ci check</span><span class="tm">GitHub CI reported: green</span></div>
+          <div class="t g"><span class="dot"></span><span class="tk">verdict</span><span class="tm">Stabilized: the code-quality/broad-except finding at superset/migrations/versions/2016-03-24_14-13_763d4b211ec9_fixing_audit_fk.py:99 was removed (no # noqa/# nosec suppression added); 1 file(s) changed.</span></div>
+          <div class="t g"><span class="dot"></span><span class="tk">stabilized</span><span class="tm">PR ready for human review</span></div>
+          
+          </div>
+        </div>
+      </div>
+    
+      
+      
+      
+      <div class="rem ">
+        <div class="rem-head">
           <div class="rem-title">yaml-unsafe-load</div>
           <div><span class="badge b-green">CI passing</span> <span class="badge b-green">stabilized</span>
             <span class="rem-links">&middot; <a href="https://github.com/catherineyinzhao/superset/pull/4208">PR</a> &middot; <a href="https://app.devin.ai/sessions/devin-mock-yaml-unsafe-load-a0">session</a></span></div>
         </div>
 
-        <div class="statusnote">Stabilized: unsafe yaml.load at superset/examples/utils.py:261 removed and replaced with yaml.safe_load; no suppression added; 1 file(s) changed.</div>
+        <div class="statusnote">Stabilized: the security/unsafe-deserialization finding at superset/examples/utils.py:261 was removed (no # noqa/# nosec suppression added); 1 file(s) changed.</div>
 
         
         <div class="block">
@@ -560,11 +647,11 @@ flowchart TD
             
             <div class="row"><span class="lab">diff scan</span>
               <span class="pass">no skip / @flaky / retry / sleep</span></div>
-            <div class="row"><span class="lab">unsafe call</span>
-              <span class="pass">removed; replaced with yaml.safe_load</span>
+            <div class="row"><span class="lab">flagged pattern</span>
+              <span class="pass">removed (not reintroduced)</span>
               </div>
             <div class="row"><span class="lab">provenance</span>
-              <span class="pass">product fix (expected for a security finding)</span> (<span class="mono">superset/examples/utils.py</span>)
+              <span class="pass">product fix (expected for a scan finding)</span> (<span class="mono">superset/examples/utils.py</span>)
               </div>
             
           </div>
@@ -579,7 +666,7 @@ flowchart TD
           <div class="t "><span class="dot"></span><span class="tk">context</span><span class="tm">playbook:pb-flaky-state-isolation | snapshot:snap-superset-dev | knowledge:kb-superset-flaky-incidents</span></div>
           <div class="t b"><span class="dot"></span><span class="tk">verify</span><span class="tm">independent re-derivation started</span></div>
           <div class="t b"><span class="dot"></span><span class="tk">ci check</span><span class="tm">GitHub CI reported: green</span></div>
-          <div class="t g"><span class="dot"></span><span class="tk">verdict</span><span class="tm">Stabilized: unsafe yaml.load at superset/examples/utils.py:261 removed and replaced with yaml.safe_load; no suppression added; 1 file(s) changed.</span></div>
+          <div class="t g"><span class="dot"></span><span class="tk">verdict</span><span class="tm">Stabilized: the security/unsafe-deserialization finding at superset/examples/utils.py:261 was removed (no # noqa/# nosec suppression added); 1 file(s) changed.</span></div>
           <div class="t g"><span class="dot"></span><span class="tk">stabilized</span><span class="tm">PR ready for human review</span></div>
           
           </div>
@@ -959,7 +1046,7 @@ flowchart TD
         </div>
       </div>
     
-    <div class="foot">6 clusters &middot; 46 seed-runs executed &middot; simulated run (mock mode) -- capability demo</div>
+    <div class="foot">7 clusters &middot; 46 seed-runs executed &middot; simulated run (mock mode) -- capability demo</div>
   </section>
 
 </div>

@@ -33,7 +33,8 @@ class Cluster:
     # "flaky" (order-dependence) or "security" (a scan finding). The validator
     # picks class-appropriate gates -- proving the verification layer is general.
     issue_class: str = "flaky"
-    location: str = ""   # for non-flaky findings: file:line
+    location: str = ""        # for non-flaky findings: file:line
+    bad_pattern: str = ""     # for static findings: regex the fix must remove (and not re-suppress)
     # Devin Playbook key for this flake class (-> a reusable remediation
     # procedure). All current clusters are order-dependence/shared-state, so they
     # share the "state-isolation" playbook; resolved to a real id via env.
@@ -232,7 +233,35 @@ CLUSTERS: List[Cluster] = [
         ),
         prompt_file="docs/prompts/fix-yaml-unsafe-load.md",
         labels=["devin-fix", "security", "rule:S506"],
+        bad_pattern=r"yaml\.load\s*\(.*Loader\s*=\s*yaml\.",
         human_baseline_hours=1.5,
+        demo_script=["stabilized"],
+    ),
+    # --- third issue class: a real CODE-QUALITY finding from the live scan --- #
+    Cluster(
+        id="bare-except",
+        title="[Code quality] Bare 'except:' (E722/S110) in a Superset migration",
+        root_cause_class="code-quality/broad-except",
+        target_test_ids=[],
+        known_bad_seeds=[],
+        issue_class="code-quality",
+        location="superset/migrations/versions/2016-03-24_14-13_763d4b211ec9_fixing_audit_fk.py:99",
+        root_cause=(
+            "A bare 'except:' (E722) silently swallows every exception, including "
+            "KeyboardInterrupt/SystemExit (S110). It is suppressed with '# noqa: E722, S110', "
+            "which hides the lint rather than fixing it."
+        ),
+        failure_excerpt="E722/S110 bare 'except:' (suppressed by # noqa: E722, S110)",
+        leaker="(n/a -- a static lint finding)",
+        fix_note="narrow the handler to 'except Exception:' (or the specific exception) and remove the # noqa",
+        fix_diff=(
+            "-    except:  # noqa: E722, S110\n"
+            "+    except Exception:\n"
+        ),
+        prompt_file="docs/prompts/fix-bare-except.md",
+        labels=["devin-fix", "code-quality", "rule:E722"],
+        bad_pattern=r"except\s*:",
+        human_baseline_hours=1.0,
         demo_script=["stabilized"],
     ),
 ]
