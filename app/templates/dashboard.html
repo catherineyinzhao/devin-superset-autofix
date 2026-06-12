@@ -48,7 +48,8 @@
 
     /* mermaid harness graph */
     .mermaid{display:flex;justify-content:center;margin:8px 0 4px;min-height:40px;}
-    .mermaid svg{max-width:100%;height:auto;}
+    .mermaid{overflow-x:auto;}
+    .mermaid svg{max-width:100%;max-height:66vh;height:auto;}
     .graph-fallback{font-family:var(--mono);font-size:11px;color:var(--faint);text-align:center;margin-top:8px;line-height:1.5;}
 
     .lpts{display:grid;grid-template-columns:1fr 1fr;gap:24px 44px;margin-top:34px;}
@@ -246,53 +247,39 @@
       static analysis, not another LLM judge that could share the agent's blind spots.</p>
 
     <pre class="mermaid">
-flowchart TD
+flowchart LR
   subgraph Detect
-    scan["Live scan (pluggable rule registry)"] --> findings["findings across 4 classes:<br/>flaky / security / code-quality / dependency"]
-    findings --> issues["one GitHub issue per finding (label: devin-fix)"]
+    direction TB
+    scan["live scan (4 classes)"] --> issues["devin-fix issues"]
   end
-  issues -->|"webhook issues.labeled / scheduled scan"| disp
-
-  subgraph Orchestrate
-    disp["dispatch() -- idempotent key cluster:repo"] --> capq{"under concurrency cap?"}
-    capq -->|no| queued["QUEUED"]
-    capq -->|yes| prim["attach Devin primitives:<br/>Playbook / Knowledge / Snapshot / structured-output / session-secrets"]
-    queued -. "poller promotes as capacity frees" .-> prim
-  end
-
-  prim --> sess["Devin session (1 agent, full context)"]
-  sess -->|"reproduce -> bisect leaker -> fix root (flaky)<br/>or remove the flagged pattern (static)"| pr["Pull request -> CI runs once, green"]
-  poller["background poller: poll_once()<br/>running / blocked / finished"] -. "GET /v1/session/id" .-> sess
-
-  pr --> cls{"issue class?"}
-  cls -->|flaky| vflaky["flaky gates (fresh clone):<br/>seed-sweep known-bad + fresh / anti-cheat / provenance / neighbor"]
-  cls -->|"security / code-quality / dependency"| vstatic["static gates (fresh clone):<br/>flagged pattern removed (not re-suppressed) / no # noqa-# nosec / re-scan"]
+  issues --> disp{"under ACU cap?"}
+  disp -->|no| queued["QUEUED"]
+  disp -->|"yes (idempotent)"| sess["Devin session<br/>+ Playbook/Knowledge/Snapshot"]
+  queued -. promote .-> sess
+  poller["poller: poll_once()"] -. "GET /session" .-> sess
+  sess -->|fix + PR| cls{"issue class?"}
+  cls -->|flaky| vflaky["flaky gates:<br/>seed-sweep / anti-cheat / provenance / neighbor"]
+  cls -->|"security / quality / dependency"| vstatic["static gates:<br/>pattern removed / no #noqa / re-scan"]
   vflaky --> verdict{"verdict"}
   vstatic --> verdict
-
-  verdict -->|stabilized| amerge{"auto-merge policy?"}
+  verdict -->|stabilized| amerge{"auto-merge<br/>policy?"}
   amerge -->|pass| merged(["merged"])
-  amerge -->|hold| review(["ready for human review"])
-  verdict -->|"cheat / still-flaky / regressed"| fb["feedback: exact evidence<br/>(failing seed / forbidden pattern)"]
-  fb -->|"rounds left"| sess
-  fb -->|"rounds exhausted"| brk(["circuit breaker -> escalate"])
-  verdict -->|"product bug"| esc(["escalate to a human"])
-  verdict -->|"env failure"| inc(["inconclusive -> retry"])
-
-  merged --> mem["engineering memory:<br/>record root-cause -> fix pattern"]
+  amerge -->|hold| review(["human review"])
+  verdict -->|"cheat / still-flaky / regressed"| fb["feedback:<br/>exact evidence"]
+  fb -->|rounds left| sess
+  fb -->|exhausted| brk(["circuit breaker"])
+  verdict -->|"product bug"| esc(["escalate"])
+  merged --> mem["engineering memory"]
   review --> mem
-  mem -. "injected as Knowledge into future same-class sessions" .-> prim
-  merged --> obs["observability:<br/>dashboard / metrics / issue board / PR report"]
-  review --> obs
-  esc --> obs
-  brk --> obs
+  mem -. "Knowledge -> future sessions" .-> sess
+  merged --> obs(["observability"])
 
   classDef gate fill:#ffffff,stroke:#16140f,stroke-width:2px,color:#16140f;
   classDef good fill:#e7f1ea,stroke:#1f7a43,color:#1f7a43;
   classDef warn fill:#f3ead8,stroke:#945a0c,color:#945a0c;
   class vflaky,vstatic gate;
-  class merged,review good;
-  class esc,brk,inc warn;
+  class merged,review,obs good;
+  class esc,brk warn;
     </pre>
     <div class="graph-fallback">The back-edge (verdict &rarr; rounds left? &rarr; session) is the recursion: a rejected PR loops back to the same session with concrete evidence.</div>
 
