@@ -439,10 +439,9 @@ flowchart TD
     <div class="eyebrow"><span class="enum">07</span> Live</div>
     <h2>What's being remediated &mdash; and how it's decided</h2>
     <p class="lead2" style="font-size:14.5px;">These are the <b>real</b> Devin sessions. <b>1</b> is fixed,
-      independently verified, and <b>merged</b> (PR #6); <b>4</b> have a completed fix but are <b>blocked on the
-      Devin GitHub-app authorization</b> (a one-time setup &mdash; no PR can open until it's granted); <b>3</b>
-      scan findings are <b>queued</b> for the next run. The full multi-class arc (fixed &rarr; verified &rarr;
-      merged across all four classes) is in the capability demo.</p>
+      independently verified (local seed-sweep), and <b>merged</b> (PR #6); <b>4</b> have <b>opened real PRs</b>
+      that passed the live anti-cheat + provenance gates (statistical seed-sweep pending); <b>3</b> scan findings
+      are <b>queued</b>. Verdicts are re-derived from each PR branch &mdash; never CI, never the agent's word.</p>
     {% for row in rows %}
       {% set r = row.r %}{% set c = row.cluster %}
       {% set res = r.verdict_detail.results if r.verdict_detail else None %}

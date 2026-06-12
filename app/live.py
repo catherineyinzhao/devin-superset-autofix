@@ -55,7 +55,7 @@ def sync() -> int:
         snap = devin.get_session(r.session_id)
         status, pr = snap["status"], (snap.get("pr_url") or r.pr_url)
 
-        if devin.is_finished(status) and pr:
+        if pr:  # a PR exists (session may still be working/blocked) -> verify it
             prn = pr_number_from_url(pr)
             pri = github.get_pr(prn) if prn else None
             diff = github.get_pr_diff(prn) if prn else ""
@@ -79,7 +79,7 @@ def sync() -> int:
                                   summary="PR open; anti-cheat + provenance gates run live; statistical seed-sweep deferred.")
             events.log(events.Event.CI_OBSERVED, f"live: GitHub CI = {ci}", remediation_id=r.id,
                        cluster_id=r.cluster_id, ci_status=ci)
-        elif devin.is_finished(status) and not pr:
+        elif devin.is_finished(status):  # finished, still no PR
             db.update_remediation(r.id, status=Status.ESCALATED, verdict=Verdict.NEEDS_HUMAN_REVIEW,
                                   summary="Devin finished a fix but could not open a PR (push blocked, HTTP 403) -- awaiting Devin GitHub-app authorization on the fork.")
         elif devin.is_blocked(status):

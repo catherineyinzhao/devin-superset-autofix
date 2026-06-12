@@ -513,14 +513,14 @@ flowchart TD
       
       <div class="num">8</div>
       <div><div class="lead">real Devin sessions taken through the independent verification loop.</div>
-        <div class="sub">1 verified stable &middot; 4 routed to a human &middot; every PR re-checked before review. The CI-green-lie contrast surfaces live whenever an attempt tries to hide a flake.</div></div>
+        <div class="sub">1 verified stable &middot; 0 routed to a human &middot; every PR re-checked before review. The CI-green-lie contrast surfaces live whenever an attempt tries to hide a flake.</div></div>
       
     </div>
     <div class="cards">
       <div class="card"><div class="n g">1</div><div class="l">Verified stable</div></div>
-      <div class="card"><div class="n">4</div><div class="l">Escalated</div></div>
-      <div class="card"><div class="n">3</div><div class="l">In progress</div></div>
-      <div class="card"><div class="n">20%</div><div class="l">Verified rate</div></div>
+      <div class="card"><div class="n">0</div><div class="l">Escalated</div></div>
+      <div class="card"><div class="n">7</div><div class="l">In progress</div></div>
+      <div class="card"><div class="n">100%</div><div class="l">Verified rate</div></div>
       <div class="card"><div class="n">19.0</div><div class="l">Eng-hrs saved</div></div>
     </div>
     <p class="lead2" style="margin-top:20px;font-size:14.5px;">What this is worth, honestly: every
@@ -535,10 +535,9 @@ flowchart TD
     <div class="eyebrow"><span class="enum">07</span> Live</div>
     <h2>What's being remediated &mdash; and how it's decided</h2>
     <p class="lead2" style="font-size:14.5px;">These are the <b>real</b> Devin sessions. <b>1</b> is fixed,
-      independently verified, and <b>merged</b> (PR #6); <b>4</b> have a completed fix but are <b>blocked on the
-      Devin GitHub-app authorization</b> (a one-time setup &mdash; no PR can open until it's granted); <b>3</b>
-      scan findings are <b>queued</b> for the next run. The full multi-class arc (fixed &rarr; verified &rarr;
-      merged across all four classes) is in the capability demo.</p>
+      independently verified (local seed-sweep), and <b>merged</b> (PR #6); <b>4</b> have <b>opened real PRs</b>
+      that passed the live anti-cheat + provenance gates (statistical seed-sweep pending); <b>3</b> scan findings
+      are <b>queued</b>. Verdicts are re-derived from each PR branch &mdash; never CI, never the agent's word.</p>
     
       
       
@@ -686,11 +685,11 @@ flowchart TD
         <div class="rem-head">
           <div class="rem-title">recaptcha-oauth-config</div>
           
-          <div><span class="badge b-grey">CI: none</span> <span class="badge b-amber">escalated</span>
-            <span class="rem-links"> &middot; <a href="https://app.devin.ai/sessions/8cb45708f51940bb87e876a938e7e3fd">session</a></span></div>
+          <div><span class="badge b-grey">CI: none</span> <span class="badge b-blue">validating</span>
+            <span class="rem-links">&middot; <a href="https://github.com/catherineyinzhao/superset/pull/12">PR</a> &middot; <a href="https://app.devin.ai/sessions/8cb45708f51940bb87e876a938e7e3fd">session</a></span></div>
         </div>
 
-        <div class="statusnote">Devin finished a verified fix but is blocked on push (HTTP 403) -- awaiting Devin GitHub-app authorization on the fork; until then no PR can be opened.</div>
+        <div class="statusnote">PR open; anti-cheat + provenance gates run live; statistical seed-sweep deferred.</div>
 
         
         <div class="block">
@@ -721,11 +720,27 @@ flowchart TD
         
 
         
+        <div class="block">
+          <div class="blk-lbl">Independent verification &mdash; re-derived from the PR branch</div>
+          <div class="evidence">
+            
+            
+            <div class="row"><span class="lab">diff scan</span>
+              <span class="pass">no skip / @flaky / retry / sleep</span></div>
+            
+            <div class="row"><span class="lab">provenance</span>
+              <span class="pass">test-side only</span> (<span class="mono">tests/unit_tests/views/test_bootstrap_auth.py</span>)</div>
+            <div class="row"><span class="lab">seed sweep</span> <span style="color:var(--muted)">deferred -- runs in the Superset dev env / a Machine Snapshot</span></div>
+          </div>
+        </div>
+        
 
         <div class="block">
           <div class="blk-lbl">Decision trace</div>
           <div class="trace">
           <div class="t b"><span class="dot"></span><span class="tk">dispatch</span><span class="tm">fired session for recaptcha-oauth-config</span></div>
+          <div class="t b"><span class="dot"></span><span class="tk">ci check</span><span class="tm">live: GitHub CI = none</span></div>
+          <div class="t b"><span class="dot"></span><span class="tk">ci check</span><span class="tm">live: GitHub CI = none</span></div>
           
           </div>
         </div>
@@ -738,11 +753,11 @@ flowchart TD
         <div class="rem-head">
           <div class="rem-title">csrf-exempt-blueprints</div>
           
-          <div><span class="badge b-grey">CI: none</span> <span class="badge b-amber">escalated</span>
-            <span class="rem-links"> &middot; <a href="https://app.devin.ai/sessions/8d8b6a58411d4222b5a7bc17a1093461">session</a></span></div>
+          <div><span class="badge b-grey">CI: none</span> <span class="badge b-blue">validating</span>
+            <span class="rem-links">&middot; <a href="https://github.com/catherineyinzhao/superset/pull/13">PR</a> &middot; <a href="https://app.devin.ai/sessions/8d8b6a58411d4222b5a7bc17a1093461">session</a></span></div>
         </div>
 
-        <div class="statusnote">Devin finished a verified fix but is blocked on push (HTTP 403) -- awaiting Devin GitHub-app authorization on the fork; until then no PR can be opened.</div>
+        <div class="statusnote">PR open; anti-cheat + provenance gates run live; statistical seed-sweep deferred.</div>
 
         
         <div class="block">
@@ -774,11 +789,27 @@ flowchart TD
         
 
         
+        <div class="block">
+          <div class="blk-lbl">Independent verification &mdash; re-derived from the PR branch</div>
+          <div class="evidence">
+            
+            
+            <div class="row"><span class="lab">diff scan</span>
+              <span class="pass">no skip / @flaky / retry / sleep</span></div>
+            
+            <div class="row"><span class="lab">provenance</span>
+              <span class="pass">test-side only</span> (<span class="mono">tests/unit_tests/conftest.py</span>)</div>
+            <div class="row"><span class="lab">seed sweep</span> <span style="color:var(--muted)">deferred -- runs in the Superset dev env / a Machine Snapshot</span></div>
+          </div>
+        </div>
+        
 
         <div class="block">
           <div class="blk-lbl">Decision trace</div>
           <div class="trace">
           <div class="t b"><span class="dot"></span><span class="tk">dispatch</span><span class="tm">fired session for csrf-exempt-blueprints</span></div>
+          <div class="t b"><span class="dot"></span><span class="tk">ci check</span><span class="tm">live: GitHub CI = none</span></div>
+          <div class="t b"><span class="dot"></span><span class="tk">ci check</span><span class="tm">live: GitHub CI = none</span></div>
           
           </div>
         </div>
@@ -791,11 +822,11 @@ flowchart TD
         <div class="rem-head">
           <div class="rem-title">catalog-perms-metadata-leak</div>
           
-          <div><span class="badge b-grey">CI: none</span> <span class="badge b-amber">escalated</span>
-            <span class="rem-links"> &middot; <a href="https://app.devin.ai/sessions/a5056e778d6d499c8b19eacb3fa5fe0f">session</a></span></div>
+          <div><span class="badge b-grey">CI: none</span> <span class="badge b-blue">validating</span>
+            <span class="rem-links">&middot; <a href="https://github.com/catherineyinzhao/superset/pull/14">PR</a> &middot; <a href="https://app.devin.ai/sessions/a5056e778d6d499c8b19eacb3fa5fe0f">session</a></span></div>
         </div>
 
-        <div class="statusnote">Devin finished a verified fix but is blocked on push (HTTP 403) -- awaiting Devin GitHub-app authorization on the fork; until then no PR can be opened.</div>
+        <div class="statusnote">PR open; anti-cheat + provenance gates run live; statistical seed-sweep deferred.</div>
 
         
         <div class="block">
@@ -826,11 +857,27 @@ flowchart TD
         
 
         
+        <div class="block">
+          <div class="blk-lbl">Independent verification &mdash; re-derived from the PR branch</div>
+          <div class="evidence">
+            
+            
+            <div class="row"><span class="lab">diff scan</span>
+              <span class="pass">no skip / @flaky / retry / sleep</span></div>
+            
+            <div class="row"><span class="lab">provenance</span>
+              <span class="pass">test-side only</span> (<span class="mono">tests/unit_tests/migrations/shared/catalogs_test.py</span>)</div>
+            <div class="row"><span class="lab">seed sweep</span> <span style="color:var(--muted)">deferred -- runs in the Superset dev env / a Machine Snapshot</span></div>
+          </div>
+        </div>
+        
 
         <div class="block">
           <div class="blk-lbl">Decision trace</div>
           <div class="trace">
           <div class="t b"><span class="dot"></span><span class="tk">dispatch</span><span class="tm">fired session for catalog-perms-metadata-leak</span></div>
+          <div class="t b"><span class="dot"></span><span class="tk">ci check</span><span class="tm">live: GitHub CI = none</span></div>
+          <div class="t b"><span class="dot"></span><span class="tk">ci check</span><span class="tm">live: GitHub CI = none</span></div>
           
           </div>
         </div>
@@ -921,11 +968,11 @@ flowchart TD
         <div class="rem-head">
           <div class="rem-title">bigquery-flask-g-asyncmock</div>
           
-          <div><span class="badge b-grey">CI: none</span> <span class="badge b-amber">escalated</span>
-            <span class="rem-links"> &middot; <a href="https://app.devin.ai/sessions/192f890205b04b6eb99408e54b2daa28">session</a></span></div>
+          <div><span class="badge b-grey">CI: none</span> <span class="badge b-blue">validating</span>
+            <span class="rem-links">&middot; <a href="https://github.com/catherineyinzhao/superset/pull/10">PR</a> &middot; <a href="https://app.devin.ai/sessions/192f890205b04b6eb99408e54b2daa28">session</a></span></div>
         </div>
 
-        <div class="statusnote">Devin finished a verified fix but is blocked on push (HTTP 403) -- awaiting Devin GitHub-app authorization on the fork; until then no PR can be opened.</div>
+        <div class="statusnote">PR open; anti-cheat + provenance gates run live; statistical seed-sweep deferred.</div>
 
         
         <div class="block">
@@ -958,11 +1005,27 @@ flowchart TD
         
 
         
+        <div class="block">
+          <div class="blk-lbl">Independent verification &mdash; re-derived from the PR branch</div>
+          <div class="evidence">
+            
+            
+            <div class="row"><span class="lab">diff scan</span>
+              <span class="pass">no skip / @flaky / retry / sleep</span></div>
+            
+            <div class="row"><span class="lab">provenance</span>
+              <span class="pass">test-side only</span> (<span class="mono">tests/unit_tests/db_engine_specs/test_bigquery.py</span>)</div>
+            <div class="row"><span class="lab">seed sweep</span> <span style="color:var(--muted)">deferred -- runs in the Superset dev env / a Machine Snapshot</span></div>
+          </div>
+        </div>
+        
 
         <div class="block">
           <div class="blk-lbl">Decision trace</div>
           <div class="trace">
           <div class="t b"><span class="dot"></span><span class="tk">dispatch</span><span class="tm">fired session for bigquery-flask-g-asyncmock</span></div>
+          <div class="t b"><span class="dot"></span><span class="tk">ci check</span><span class="tm">live: GitHub CI = none</span></div>
+          <div class="t b"><span class="dot"></span><span class="tk">ci check</span><span class="tm">live: GitHub CI = none</span></div>
           
           </div>
         </div>
