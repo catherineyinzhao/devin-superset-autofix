@@ -110,7 +110,7 @@ def synth_diff(pr_number: int) -> str:
     # Static-finding classes (security / code-quality): different fix shape.
     # stabilized -> the real fix diff; cheat -> re-add the flagged line with a
     # # noqa suppression (masks the finding instead of fixing it).
-    if cluster.issue_class in ("security", "code-quality"):
+    if cluster.issue_class in ("security", "code-quality", "dependency"):
         path = (cluster.location or "superset/examples/utils.py:0").split(":")[0]
         if intent == "cheat_detected":
             bad = next((l[1:].rstrip() for l in cluster.fix_diff.splitlines() if l.startswith("-")), "")

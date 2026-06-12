@@ -53,7 +53,8 @@ FORBIDDEN = (
 def _static_prompt(cluster: Cluster, repo_url: str, issue_number: Optional[int]) -> str:
     branch = f"devin/fix-{cluster.id}"
     issue_ref = f" (closes #{issue_number})" if issue_number else ""
-    kind = "SECURITY" if cluster.issue_class == "security" else "CODE-QUALITY"
+    kind = {"security": "SECURITY", "code-quality": "CODE-QUALITY",
+            "dependency": "DEPENDENCY"}.get(cluster.issue_class, "CODE-QUALITY")
     return f"""## Role
 You are an autonomous software engineer fixing a {kind} finding in a fork of Apache Superset.
 
@@ -84,7 +85,7 @@ Do not ask for clarification -- make your best judgment and proceed.
 
 
 def build_prompt(cluster: Cluster, repo_url: str, issue_number: Optional[int] = None) -> str:
-    if cluster.issue_class in ("security", "code-quality"):
+    if cluster.issue_class in ("security", "code-quality", "dependency"):
         return _static_prompt(cluster, repo_url, issue_number)
     seeds = ", ".join(str(s) for s in cluster.known_bad_seeds)
     targets = "\n".join(f"  - {t}" for t in cluster.target_test_ids)

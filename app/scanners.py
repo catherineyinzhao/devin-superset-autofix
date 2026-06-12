@@ -60,6 +60,36 @@ def scan_static(repo_dir: str) -> List[Dict[str, Any]]:
     return findings
 
 
+# Dependency advisories (grounded in a live pip-audit / OSV run against the fork's
+# pinned env). A real deployment runs pip-audit directly; here we match the pinned
+# requirements against this confirmed advisory set.
+_DEP_ADVISORIES = [
+    {"cluster_id": "dep-pyjwt-cve", "pin": re.compile(r"(?i)pyjwt==2\.12\.0"),
+     "rule": "PYSEC-2026-179", "fix": "2.13.0"},
+]
+
+
+def scan_dependency(repo_dir: str) -> List[Dict[str, Any]]:
+    """Scan pinned requirements for packages with known advisories."""
+    findings: List[Dict[str, Any]] = []
+    reqs = Path(repo_dir) / "requirements"
+    if not reqs.exists():
+        return findings
+    seen = set()
+    for req in reqs.glob("*.txt"):
+        for i, line in enumerate(req.read_text(encoding="utf-8", errors="ignore").splitlines(), 1):
+            for a in _DEP_ADVISORIES:
+                if a["cluster_id"] not in seen and a["pin"].search(line):
+                    seen.add(a["cluster_id"])
+                    findings.append({
+                        "issue_class": "dependency", "rule": a["rule"],
+                        "cluster_id": a["cluster_id"],
+                        "location": f"requirements/{req.name}:{i}",
+                        "snippet": line.strip(), "suppressed": False,
+                    })
+    return findings
+
+
 def scan_flaky() -> List[Dict[str, Any]]:
     """Order-dependence findings (from the seed-sweep discovery run)."""
     return [{"issue_class": "flaky", "cluster_id": c.id,
@@ -71,5 +101,5 @@ def scan_flaky() -> List[Dict[str, Any]]:
 def scan_all(repo_dir: Optional[str] = None) -> List[Dict[str, Any]]:
     out = scan_flaky()
     if repo_dir:
-        out += scan_static(repo_dir)
+        out += scan_static(repo_dir) + scan_dependency(repo_dir)
     return out

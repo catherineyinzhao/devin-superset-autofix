@@ -48,7 +48,7 @@
 
     /* mermaid harness graph */
     .mermaid{display:flex;justify-content:center;margin:8px 0 4px;min-height:40px;}
-    .mermaid svg{max-width:100%;height:auto;}
+    .mermaid svg{max-width:100%;max-height:62vh;height:auto;}
     .graph-fallback{font-family:var(--mono);font-size:11px;color:var(--faint);text-align:center;margin-top:8px;line-height:1.5;}
 
     .lpts{display:grid;grid-template-columns:1fr 1fr;gap:24px 44px;margin-top:34px;}
@@ -169,7 +169,7 @@
 <div class="wrap"><header>
     <h1>Devin Flaky-Test Autofix</h1>
     <p class="tagline">An independent verification layer for autonomous code remediation. A scan finds issues
-      &mdash; flaky tests, security findings, code-quality lint &mdash; Devin fixes them, and <b>before any PR
+      &mdash; flaky tests, security findings, code-quality lint, vulnerable dependencies &mdash; Devin fixes them, and <b>before any PR
       reaches a human</b> this system independently re-verifies the fix and rejects cheats.</p>
     <div class="repo">target: github.com/catherineyinzhao/superset &nbsp;|&nbsp; live, auto-refresh 5s</div>
   </header>
@@ -208,19 +208,13 @@
 
     <pre class="mermaid">
 flowchart TD
-  scan["Scheduled scan<br/>suite re-run across seed orderings"] --> clusters["9 flaky tests, 7 root-cause clusters<br/>filed as devin-fix issues"]
-  clusters --> orch[["Orchestrator<br/>idempotent, bounded concurrency"]]
-  orch -->|"fan out (parallel)"| s1["Devin session A<br/>1 agent + Playbook / Knowledge / Snapshot"]
-  orch --> s2["Devin session B"]
-  orch --> s3["Devin session C"]
-  s1 -->|"reproduce, bisect leaker, fix root, open PR"| pr["Pull request<br/>CI runs once, reports green"]
-  pr --> val["Independent validator (fresh clone, deterministic)<br/>seed sweep / anti-cheat / provenance / neighbor"]
+  scan["Scan: flaky / security / code-quality / dependency findings -> devin-fix issues"] --> orch["Orchestrator: idempotent, bounded concurrency"]
+  orch -->|"fan out, parallel"| sess["Devin session: 1 agent + Playbook/Knowledge/Snapshot -> PR"]
+  sess --> val["Independent validator (fresh clone): seed-sweep / anti-cheat / provenance / neighbor"]
   val --> verdict{"verdict"}
-  verdict -->|"stabilized"| done(["Ready for human review"])
-  verdict -->|"product bug"| esc(["Escalate to a human"])
-  verdict -->|"cheat / still-flaky / regressed"| gate{"rounds left?"}
-  gate -->|"yes: thread exact evidence back"| s1
-  gate -->|"no: circuit breaker"| esc
+  verdict -->|"stabilized"| done(["ready for review / auto-merge"])
+  verdict -->|"product bug"| esc(["escalate to a human"])
+  verdict -->|"cheat / still-flaky / regressed (bounded, then circuit-breaker)"| sess
   classDef val fill:#ffffff,stroke:#16140f,stroke-width:2px,color:#16140f;
   classDef good fill:#e7f1ea,stroke:#1f7a43,color:#1f7a43;
   classDef warn fill:#f3ead8,stroke:#945a0c,color:#945a0c;
@@ -350,6 +344,12 @@ flowchart TD
         <span class="memk">bare-except</span><span class="memfc">[code-quality/broad-except]</span>
         <div class="memfix"><b>fix pattern:</b> narrow the handler to 'except Exception:' (or the specific exception) and remove the # noqa</div>
         <div class="memv">verified &middot; Stabilized: the code-quality/broad-except finding at superset/migrations/versions/2016-03-24_14-13_763d4b211ec9_fixing_audit_fk.py:99 was removed (no # noqa/# nosec suppression added); 1 file(s) changed.</div>
+      </div>
+      
+      <div class="memrow">
+        <span class="memk">dep-pyjwt-cve</span><span class="memfc">[dependency/known-vulnerability]</span>
+        <div class="memfix"><b>fix pattern:</b> bump pyjwt to 2.13.0 in the requirements (a clean minor upgrade)</div>
+        <div class="memv">verified &middot; Stabilized: the dependency/known-vulnerability finding at requirements/base.txt was removed (no # noqa/# nosec suppression added); 1 file(s) changed.</div>
       </div>
       
     </div>
@@ -518,11 +518,11 @@ flowchart TD
       
     </div>
     <div class="cards">
-      <div class="card"><div class="n g">6</div><div class="l">Verified stable</div></div>
+      <div class="card"><div class="n g">7</div><div class="l">Verified stable</div></div>
       <div class="card"><div class="n">1</div><div class="l">Escalated</div></div>
       <div class="card"><div class="n">0</div><div class="l">In progress</div></div>
-      <div class="card"><div class="n">86%</div><div class="l">Verified rate</div></div>
-      <div class="card"><div class="n">15.5</div><div class="l">Eng-hrs saved</div></div>
+      <div class="card"><div class="n">88%</div><div class="l">Verified rate</div></div>
+      <div class="card"><div class="n">16.0</div><div class="l">Eng-hrs saved</div></div>
     </div>
     <p class="lead2" style="margin-top:20px;font-size:14.5px;">What this is worth, honestly: every
       <b>verified</b> fix is debt a scanner would only have accumulated &mdash; retired and proven; every caught
@@ -541,6 +541,74 @@ flowchart TD
       
       <div class="rem ">
         <div class="rem-head">
+          <div class="rem-title">dep-pyjwt-cve</div>
+          <div><span class="badge b-green">CI passing</span> <span class="badge b-green">stabilized</span>
+            <span class="rem-links">&middot; <a href="https://github.com/catherineyinzhao/superset/pull/4210">PR</a> &middot; <a href="https://app.devin.ai/sessions/devin-mock-dep-pyjwt-cve-a0">session</a></span></div>
+        </div>
+
+        <div class="statusnote">Stabilized: the dependency/known-vulnerability finding at requirements/base.txt was removed (no # noqa/# nosec suppression added); 1 file(s) changed.</div>
+
+        
+        <div class="block">
+          <div class="blk-lbl">The finding (from a live scan)</div>
+          <div class="facts">
+            <div class="k">Location</div><div class="v mono">requirements/base.txt</div>
+            <div class="k">Rule</div><div class="v mono">pyjwt==2.12.0 -> PYSEC-2026-179, PYSEC-2026-175 (fix: 2.13.0)</div>
+            <div class="k">Risk</div><div class="v">pyjwt is pinned at 2.12.0, which has known advisories PYSEC-2026-179 and PYSEC-2026-175 (found by a live OSV scan). Fixed in 2.13.0.</div>
+          </div>
+        </div>
+        <div class="block">
+          <div class="blk-lbl">Remediation &mdash; what Devin did</div>
+          <div class="facts" style="margin-bottom:12px;">
+            <div class="k">Fix</div><div class="v">bump pyjwt to 2.13.0 in the requirements (a clean minor upgrade)</div>
+          </div>
+          <pre class="code"><span class="del">-pyjwt==2.12.0</span>
+<span class="add">+pyjwt==2.13.0</span>
+</pre>
+        </div>
+        
+
+        
+
+        
+        <div class="block">
+          <div class="blk-lbl">Independent verification &mdash; re-derived from the PR branch</div>
+          <div class="evidence">
+            
+            
+            <div class="row"><span class="lab">diff scan</span>
+              <span class="pass">no skip / @flaky / retry / sleep</span></div>
+            <div class="row"><span class="lab">flagged pattern</span>
+              <span class="pass">removed (not reintroduced)</span>
+              </div>
+            <div class="row"><span class="lab">provenance</span>
+              <span class="pass">product fix (expected for a scan finding)</span> (<span class="mono">requirements/base.txt</span>)
+              </div>
+            
+          </div>
+        </div>
+        
+
+        <div class="block">
+          <div class="blk-lbl">Decision trace</div>
+          <div class="trace">
+          <div class="t "><span class="dot"></span><span class="tk">queued</span><span class="tm">queued dep-pyjwt-cve</span></div>
+          <div class="t b"><span class="dot"></span><span class="tk">dispatch</span><span class="tm">dispatched Devin for dep-pyjwt-cve</span></div>
+          <div class="t "><span class="dot"></span><span class="tk">context</span><span class="tm">playbook:pb | snapshot:snap | knowledge:kb</span></div>
+          <div class="t b"><span class="dot"></span><span class="tk">verify</span><span class="tm">independent re-derivation started</span></div>
+          <div class="t b"><span class="dot"></span><span class="tk">ci check</span><span class="tm">GitHub CI reported: green</span></div>
+          <div class="t g"><span class="dot"></span><span class="tk">verdict</span><span class="tm">Stabilized: the dependency/known-vulnerability finding at requirements/base.txt was removed (no # noqa/# nosec suppression added); 1 file(s) changed.</span></div>
+          <div class="t g"><span class="dot"></span><span class="tk">stabilized</span><span class="tm">PR ready for human review</span></div>
+          
+          </div>
+        </div>
+      </div>
+    
+      
+      
+      
+      <div class="rem ">
+        <div class="rem-head">
           <div class="rem-title">bare-except</div>
           <div><span class="badge b-green">CI passing</span> <span class="badge b-green">stabilized</span>
             <span class="rem-links">&middot; <a href="https://github.com/catherineyinzhao/superset/pull/4209">PR</a> &middot; <a href="https://app.devin.ai/sessions/devin-mock-bare-except-a0">session</a></span></div>
@@ -550,7 +618,7 @@ flowchart TD
 
         
         <div class="block">
-          <div class="blk-lbl">The finding (from a live source scan)</div>
+          <div class="blk-lbl">The finding (from a live scan)</div>
           <div class="facts">
             <div class="k">Location</div><div class="v mono">superset/migrations/versions/2016-03-24_14-13_763d4b211ec9_fixing_audit_fk.py:99</div>
             <div class="k">Rule</div><div class="v mono">E722/S110 bare 'except:' (suppressed by # noqa: E722, S110)</div>
@@ -595,7 +663,7 @@ flowchart TD
           <div class="trace">
           <div class="t "><span class="dot"></span><span class="tk">queued</span><span class="tm">queued bare-except</span></div>
           <div class="t b"><span class="dot"></span><span class="tk">dispatch</span><span class="tm">dispatched Devin for bare-except</span></div>
-          <div class="t "><span class="dot"></span><span class="tk">context</span><span class="tm">playbook:pb-flaky-state-isolation | snapshot:snap-superset-dev | knowledge:kb-superset-flaky-incidents</span></div>
+          <div class="t "><span class="dot"></span><span class="tk">context</span><span class="tm">playbook:pb | snapshot:snap | knowledge:kb</span></div>
           <div class="t b"><span class="dot"></span><span class="tk">verify</span><span class="tm">independent re-derivation started</span></div>
           <div class="t b"><span class="dot"></span><span class="tk">ci check</span><span class="tm">GitHub CI reported: green</span></div>
           <div class="t g"><span class="dot"></span><span class="tk">verdict</span><span class="tm">Stabilized: the code-quality/broad-except finding at superset/migrations/versions/2016-03-24_14-13_763d4b211ec9_fixing_audit_fk.py:99 was removed (no # noqa/# nosec suppression added); 1 file(s) changed.</span></div>
@@ -619,7 +687,7 @@ flowchart TD
 
         
         <div class="block">
-          <div class="blk-lbl">The finding (from a live source scan)</div>
+          <div class="blk-lbl">The finding (from a live scan)</div>
           <div class="facts">
             <div class="k">Location</div><div class="v mono">superset/examples/utils.py:261</div>
             <div class="k">Rule</div><div class="v mono">S506 unsafe yaml.load with Loader=yaml.Loader (suppressed by # noqa: S506)</div>
@@ -663,7 +731,7 @@ flowchart TD
           <div class="trace">
           <div class="t "><span class="dot"></span><span class="tk">queued</span><span class="tm">queued yaml-unsafe-load</span></div>
           <div class="t b"><span class="dot"></span><span class="tk">dispatch</span><span class="tm">dispatched Devin for yaml-unsafe-load</span></div>
-          <div class="t "><span class="dot"></span><span class="tk">context</span><span class="tm">playbook:pb-flaky-state-isolation | snapshot:snap-superset-dev | knowledge:kb-superset-flaky-incidents</span></div>
+          <div class="t "><span class="dot"></span><span class="tk">context</span><span class="tm">playbook:pb | snapshot:snap | knowledge:kb</span></div>
           <div class="t b"><span class="dot"></span><span class="tk">verify</span><span class="tm">independent re-derivation started</span></div>
           <div class="t b"><span class="dot"></span><span class="tk">ci check</span><span class="tm">GitHub CI reported: green</span></div>
           <div class="t g"><span class="dot"></span><span class="tk">verdict</span><span class="tm">Stabilized: the security/unsafe-deserialization finding at superset/examples/utils.py:261 was removed (no # noqa/# nosec suppression added); 1 file(s) changed.</span></div>
@@ -734,7 +802,7 @@ flowchart TD
           <div class="trace">
           <div class="t "><span class="dot"></span><span class="tk">queued</span><span class="tm">queued recaptcha-oauth-config</span></div>
           <div class="t b"><span class="dot"></span><span class="tk">dispatch</span><span class="tm">dispatched Devin for recaptcha-oauth-config</span></div>
-          <div class="t "><span class="dot"></span><span class="tk">context</span><span class="tm">playbook:pb-flaky-state-isolation | snapshot:snap-superset-dev | knowledge:kb-superset-flaky-incidents</span></div>
+          <div class="t "><span class="dot"></span><span class="tk">context</span><span class="tm">playbook:pb | snapshot:snap | knowledge:kb</span></div>
           <div class="t b"><span class="dot"></span><span class="tk">verify</span><span class="tm">independent re-derivation started</span></div>
           <div class="t b"><span class="dot"></span><span class="tk">ci check</span><span class="tm">GitHub CI reported: green</span></div>
           <div class="t a"><span class="dot"></span><span class="tk">verdict</span><span class="tm">ESCALATED: fix touched product code under superset/ (or the session escalated a suspected product bug). Routed to a human -- not auto-stabilized.</span></div>
@@ -806,7 +874,7 @@ flowchart TD
           <div class="trace">
           <div class="t "><span class="dot"></span><span class="tk">queued</span><span class="tm">queued csrf-exempt-blueprints</span></div>
           <div class="t b"><span class="dot"></span><span class="tk">dispatch</span><span class="tm">dispatched Devin for csrf-exempt-blueprints</span></div>
-          <div class="t "><span class="dot"></span><span class="tk">context</span><span class="tm">playbook:pb-flaky-state-isolation | snapshot:snap-superset-dev | knowledge:kb-superset-flaky-incidents</span></div>
+          <div class="t "><span class="dot"></span><span class="tk">context</span><span class="tm">playbook:pb | snapshot:snap | knowledge:kb</span></div>
           <div class="t b"><span class="dot"></span><span class="tk">verify</span><span class="tm">independent re-derivation started</span></div>
           <div class="t b"><span class="dot"></span><span class="tk">ci check</span><span class="tm">GitHub CI reported: green</span></div>
           <div class="t g"><span class="dot"></span><span class="tk">verdict</span><span class="tm">Re-ran tests/unit_tests/ 8x (2 known-bad + 5 fresh seeds): 0/1 target failures, 0 regressions, no skip/retry/flaky markers added. STABILIZED.</span></div>
@@ -877,7 +945,7 @@ flowchart TD
           <div class="trace">
           <div class="t "><span class="dot"></span><span class="tk">queued</span><span class="tm">queued catalog-perms-metadata-leak</span></div>
           <div class="t b"><span class="dot"></span><span class="tk">dispatch</span><span class="tm">dispatched Devin for catalog-perms-metadata-leak</span></div>
-          <div class="t "><span class="dot"></span><span class="tk">context</span><span class="tm">playbook:pb-flaky-state-isolation | snapshot:snap-superset-dev | knowledge:kb-superset-flaky-incidents</span></div>
+          <div class="t "><span class="dot"></span><span class="tk">context</span><span class="tm">playbook:pb | snapshot:snap | knowledge:kb</span></div>
           <div class="t b"><span class="dot"></span><span class="tk">verify</span><span class="tm">independent re-derivation started</span></div>
           <div class="t b"><span class="dot"></span><span class="tk">ci check</span><span class="tm">GitHub CI reported: green</span></div>
           <div class="t r"><span class="dot"></span><span class="tk">verdict</span><span class="tm">REJECTED: CI reported 'green', but re-running 10x found a target still failing under seed(s) ['101']. Not stabilized.</span></div>
@@ -958,7 +1026,7 @@ flowchart TD
           <div class="trace">
           <div class="t "><span class="dot"></span><span class="tk">queued</span><span class="tm">queued dataset-import-allowlist</span></div>
           <div class="t b"><span class="dot"></span><span class="tk">dispatch</span><span class="tm">dispatched Devin for dataset-import-allowlist</span></div>
-          <div class="t "><span class="dot"></span><span class="tk">context</span><span class="tm">playbook:pb-flaky-state-isolation | snapshot:snap-superset-dev | knowledge:kb-superset-flaky-incidents</span></div>
+          <div class="t "><span class="dot"></span><span class="tk">context</span><span class="tm">playbook:pb | snapshot:snap | knowledge:kb</span></div>
           <div class="t b"><span class="dot"></span><span class="tk">verify</span><span class="tm">independent re-derivation started</span></div>
           <div class="t b"><span class="dot"></span><span class="tk">ci check</span><span class="tm">GitHub CI reported: green</span></div>
           <div class="t r"><span class="dot"></span><span class="tk">verdict</span><span class="tm">REJECTED: CI reported 'green', but the diff contains forbidden anti-cheat pattern(s): pytest.mark.flaky, flaky(...), pytest-rerunfailures. The flake was hidden, not fixed.</span></div>
@@ -1036,7 +1104,7 @@ flowchart TD
           <div class="trace">
           <div class="t "><span class="dot"></span><span class="tk">queued</span><span class="tm">queued bigquery-flask-g-asyncmock</span></div>
           <div class="t b"><span class="dot"></span><span class="tk">dispatch</span><span class="tm">dispatched Devin for bigquery-flask-g-asyncmock</span></div>
-          <div class="t "><span class="dot"></span><span class="tk">context</span><span class="tm">playbook:pb-flaky-state-isolation | snapshot:snap-superset-dev | knowledge:kb-superset-flaky-incidents</span></div>
+          <div class="t "><span class="dot"></span><span class="tk">context</span><span class="tm">playbook:pb | snapshot:snap | knowledge:kb</span></div>
           <div class="t b"><span class="dot"></span><span class="tk">verify</span><span class="tm">independent re-derivation started</span></div>
           <div class="t b"><span class="dot"></span><span class="tk">ci check</span><span class="tm">GitHub CI reported: green</span></div>
           <div class="t g"><span class="dot"></span><span class="tk">verdict</span><span class="tm">Re-ran tests/unit_tests/ 10x (4 known-bad + 5 fresh seeds): 0/5 target failures, 0 regressions, no skip/retry/flaky markers added. STABILIZED.</span></div>
@@ -1046,7 +1114,7 @@ flowchart TD
         </div>
       </div>
     
-    <div class="foot">7 clusters &middot; 46 seed-runs executed &middot; simulated run (mock mode) -- capability demo</div>
+    <div class="foot">8 clusters &middot; 46 seed-runs executed &middot; simulated run (mock mode) -- capability demo</div>
   </section>
 
 </div>

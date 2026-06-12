@@ -264,6 +264,32 @@ CLUSTERS: List[Cluster] = [
         human_baseline_hours=1.0,
         demo_script=["stabilized"],
     ),
+    # --- fourth issue class: a real DEPENDENCY vulnerability (live OSV scan) --- #
+    Cluster(
+        id="dep-pyjwt-cve",
+        title="[Dependency] pyjwt 2.12.0 has known CVEs (PYSEC-2026-179/175) -> bump to 2.13.0",
+        root_cause_class="dependency/known-vulnerability",
+        target_test_ids=[],
+        known_bad_seeds=[],
+        issue_class="dependency",
+        location="requirements/base.txt",
+        root_cause=(
+            "pyjwt is pinned at 2.12.0, which has known advisories PYSEC-2026-179 and "
+            "PYSEC-2026-175 (found by a live OSV scan). Fixed in 2.13.0."
+        ),
+        failure_excerpt="pyjwt==2.12.0 -> PYSEC-2026-179, PYSEC-2026-175 (fix: 2.13.0)",
+        leaker="(n/a -- a dependency advisory, not order-dependent)",
+        fix_note="bump pyjwt to 2.13.0 in the requirements (a clean minor upgrade)",
+        fix_diff=(
+            "-pyjwt==2.12.0\n"
+            "+pyjwt==2.13.0"
+        ),
+        prompt_file="docs/prompts/fix-dep-pyjwt.md",
+        labels=["devin-fix", "security", "dependency"],
+        bad_pattern=r"(?i)pyjwt==2\.12\.0",
+        human_baseline_hours=0.5,
+        demo_script=["stabilized"],
+    ),
 ]
 
 CLUSTERS_BY_ID = {c.id: c for c in CLUSTERS}

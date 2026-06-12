@@ -210,7 +210,7 @@ def _summary(verdict: str, cluster: Cluster, seeds: Dict[str, Any], diff_scan: D
     return "INCONCLUSIVE: environment/build/collection failure prevented a clean verdict."
 
 
-_STATIC_CLASSES = {"security", "code-quality"}
+_STATIC_CLASSES = {"security", "code-quality", "dependency"}
 
 
 def _validate_static(cluster: Cluster, pr_url: str) -> Validation:

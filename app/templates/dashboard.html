@@ -48,7 +48,7 @@
 
     /* mermaid harness graph */
     .mermaid{display:flex;justify-content:center;margin:8px 0 4px;min-height:40px;}
-    .mermaid svg{max-width:100%;height:auto;}
+    .mermaid svg{max-width:100%;max-height:62vh;height:auto;}
     .graph-fallback{font-family:var(--mono);font-size:11px;color:var(--faint);text-align:center;margin-top:8px;line-height:1.5;}
 
     .lpts{display:grid;grid-template-columns:1fr 1fr;gap:24px 44px;margin-top:34px;}
@@ -196,7 +196,7 @@
   <header>
     <h1>Devin Flaky-Test Autofix</h1>
     <p class="tagline">An independent verification layer for autonomous code remediation. A scan finds issues
-      &mdash; flaky tests, security findings, code-quality lint &mdash; Devin fixes them, and <b>before any PR
+      &mdash; flaky tests, security findings, code-quality lint, vulnerable dependencies &mdash; Devin fixes them, and <b>before any PR
       reaches a human</b> this system independently re-verifies the fix and rejects cheats.</p>
     <div class="repo">target: github.com/{{ metrics.repo }} &nbsp;|&nbsp; live, auto-refresh 5s</div>
   </header>
@@ -247,19 +247,13 @@
 
     <pre class="mermaid">
 flowchart TD
-  scan["Scheduled scan<br/>suite re-run across seed orderings"] --> clusters["9 flaky tests, {{ metrics.total }} root-cause clusters<br/>filed as devin-fix issues"]
-  clusters --> orch[["Orchestrator<br/>idempotent, bounded concurrency"]]
-  orch -->|"fan out (parallel)"| s1["Devin session A<br/>1 agent + Playbook / Knowledge / Snapshot"]
-  orch --> s2["Devin session B"]
-  orch --> s3["Devin session C"]
-  s1 -->|"reproduce, bisect leaker, fix root, open PR"| pr["Pull request<br/>CI runs once, reports green"]
-  pr --> val["Independent validator (fresh clone, deterministic)<br/>seed sweep / anti-cheat / provenance / neighbor"]
+  scan["Scan: flaky / security / code-quality / dependency findings -> devin-fix issues"] --> orch["Orchestrator: idempotent, bounded concurrency"]
+  orch -->|"fan out, parallel"| sess["Devin session: 1 agent + Playbook/Knowledge/Snapshot -> PR"]
+  sess --> val["Independent validator (fresh clone): seed-sweep / anti-cheat / provenance / neighbor"]
   val --> verdict{"verdict"}
-  verdict -->|"stabilized"| done(["Ready for human review"])
-  verdict -->|"product bug"| esc(["Escalate to a human"])
-  verdict -->|"cheat / still-flaky / regressed"| gate{"rounds left?"}
-  gate -->|"yes: thread exact evidence back"| s1
-  gate -->|"no: circuit breaker"| esc
+  verdict -->|"stabilized"| done(["ready for review / auto-merge"])
+  verdict -->|"product bug"| esc(["escalate to a human"])
+  verdict -->|"cheat / still-flaky / regressed (bounded, then circuit-breaker)"| sess
   classDef val fill:#ffffff,stroke:#16140f,stroke-width:2px,color:#16140f;
   classDef good fill:#e7f1ea,stroke:#1f7a43,color:#1f7a43;
   classDef warn fill:#f3ead8,stroke:#945a0c,color:#945a0c;
@@ -454,9 +448,9 @@ flowchart TD
 
         {% if r.summary %}<div class="statusnote">{{ r.summary }}</div>{% endif %}
 
-        {% if c.issue_class in ['security', 'code-quality'] %}
+        {% if c.issue_class in ['security', 'code-quality', 'dependency'] %}
         <div class="block">
-          <div class="blk-lbl">The finding (from a live source scan)</div>
+          <div class="blk-lbl">The finding (from a live scan)</div>
           <div class="facts">
             <div class="k">Location</div><div class="v mono">{{ c.location }}</div>
             <div class="k">Rule</div><div class="v mono">{{ c.failure_excerpt }}</div>
